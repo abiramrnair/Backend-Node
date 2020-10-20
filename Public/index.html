@@ -4,8 +4,7 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
 <html>
-    <head>
-        
+    <head>        
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Lab 3</title>
@@ -20,31 +19,34 @@
         <div class="topnav">
             <a class="" href="#home">Home</a>
             <a href="">Build Schedule</a>
-            <a href="">Access Saved Schedules</a>
-            <a id="lab3">Lab 3</a>
+            <a href="">View Saved Schedules</a>
+            <a id="lab3">LAB 3</a>
         </div>
 
         <div>
-            <form action="/action_page.php">
+            <form action="/api/courses">
             <label for="subject" id = "subject">Search by Subject:</label>
-              <select id="select_subject" name="country">
-                <option value="" selected disabled hidden>All Subjects</option>                
+              <select id="select_subject" name="subject">
+                <option value="All_Subjects" hidden>All Subjects</option>                
             </select><br>   
                      
-            <label for="course_number">Search by Course Number:</label>
-            <input type="text" id="course_number" name="course_number" placeholder="eg. 1000"><br>
+            <label for="course_number">Search by Course Code:</label>
+            <input type="text" id="course_nbr" name="course_number" placeholder="eg. 1927A"><br>
           
             <label for="course_component" id="course_component">Component:</label>
-            <select id="components" name="course_component">
-                <option value="default_component">All</option>
-                <option value="lecture">Lecture</option>
-                <option value="tutorial">Tutorial</option>
-                <option value="lab">Laboratory</option>
+            <select id="components" name="course_cmpnt">
+                <option value="all_components">All</option>
+                <option value="LEC">Lecture</option>
+                <option value="TUT">Tutorial</option>
+                <option value="LAB">Laboratory</option>
             </select><br>
 
             <input type="submit" value="Submit">
             </form>
         </div>
+
+        <div id = "searchbox"></div>
+        <script src="/app.js"></script>
         <script src="script.js" async defer></script>        
     </body>
 </html>

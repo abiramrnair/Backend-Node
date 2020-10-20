@@ -27,3 +27,7 @@ for (i = 0; i < subjects.length; i++) {
     newOption.appendChild(optionText);
     selectbox.appendChild(newOption);
 }
+
+async function getData() {
+    const response = await fetch("localhost:3000/api/courses");    
+}
