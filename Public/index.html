@@ -17,14 +17,14 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         <div class="topnav">
-            <a class="" href="#home">Home</a>
-            <a href="">Build Schedule</a>
+            <a href="http://localhost:3000/">Home</a>
+            <a href="schedule.html">Build Schedule</a>
             <a href="">View Saved Schedules</a>
             <a id="lab3">LAB 3</a>
         </div>
 
         <div>
-            <form action="/api/courses">
+            <form>
             <label for="subject" id = "subject">Search by Subject:</label>
               <select id="select_subject" name="subject">
                 <option value="All_Subjects" hidden>All Subjects</option>                
@@ -41,12 +41,15 @@
                 <option value="LAB">Laboratory</option>
             </select><br>
 
-            <input type="submit" value="Submit">
+            <input id = "submitbutton" type="button" value="Submit" onclick="listCourses()">
             </form>
         </div>
 
-        <div id = "searchbox"></div>
-        <script src="/app.js"></script>
+        <div id = "searchbox">
+
+        </div>
+
+    
         <script src="script.js" async defer></script>        
     </body>
 </html>

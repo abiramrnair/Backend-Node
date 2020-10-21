@@ -19,7 +19,7 @@ input[type=text], select {
     box-sizing: border-box;   
   }
   
-input[type=submit] {
+input[type=button] {
     width: 300px;
     background-color: darkgrey;
     color:black;
@@ -35,7 +35,7 @@ input[type=submit] {
     font-weight: bold;
  }
   
-input[type=submit]:hover {
+input[type=button]:hover {
    background-color: goldenrod;
 }
   
@@ -99,4 +99,56 @@ label {
     top: -120%;    
     pointer-events: none;
     cursor: default;
+}
+
+#searchbox {
+    position: absolute;
+    width: 1110px;
+    height: fit-content;
+    top: 600px;
+    left: 400px;      
+}
+
+table {
+    border-collapse: collapse;
+    width: 1110px;
+    text-align: center;
+}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 5%;    
+}
+  
+td, th {
+    border: 1px solid black;
+    text-align: center;
+    padding: 8px;   
+}
+  
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+tr {
+    font-weight: bold;
+}
+
+#LEC {
+    background-color: #fed8b1;
+}
+
+#LAB {
+    background-color: #add8e6;
+}
+
+#TUT {
+    background-color: #98fb98;
+}
+
+h2 {
+    font-weight: bold;
+    text-align: center;
 }

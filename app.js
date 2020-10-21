@@ -1,28 +1,30 @@
 const express = require('express');
 const app = express();
-const path = require('path');
 const data = require("./Lab3-timetable-data.json");
 const data_count = Object.keys(data).length;
+app.use(express.static('Public'));
+
 
 var subject_array = [];
 var info_array = [];
-
-// Make an array of all subjects for drop down menu
-for (i = 0; i < data_count; i++) {
-    subject_array[i] = data[i].subject; 
-}
 
 // Delete duplicates in array for unique subjects
 function removeDuplicates(array) {
     return array.filter((a, b) => array.indexOf(a) === b)
 };
 
-subject_array = removeDuplicates(subject_array);
+// Get drop down list and send it to browser
 
-//console.log(subject_array); *USED THIS TO COPY TO ARRAY AND CREATE A ONE TIME UPDATE DROP DOWN LIST OF ITEMS FOR BROWSERSIDE JAVASCRIPT DOM MANIPULATION*
-var curr_data = [];
+app.get('/api/dropdown', (req, res) => {
 
-app.use(express.static('Public'));
+    for (i = 0; i < data_count; i++) {
+        subject_array[i] = data[i].subject; 
+    }
+
+    subject_array = removeDuplicates(subject_array);
+
+    res.send(subject_array);
+});
 
 // Main page form submit to search for courses
 app.get('/api/courses', (req, res) => {
@@ -33,8 +35,9 @@ app.get('/api/courses', (req, res) => {
   component = curr_data.course_cmpnt;
 
   if (subject_name == "All_Subjects" && number == "") { // done
-      res.send("Too many results to display. Please narrow search fields.");
-      return false;
+    return res.status(400).send({
+        message: 'Too many results to display. Please narrow search fields.'
+    });      
   }
 
   else if (subject_name != "All_Subjects" && number == "" && component != "all_components") { // Subject area chosen and specific component chosen
@@ -46,7 +49,9 @@ app.get('/api/courses', (req, res) => {
     }
 
     if (info_array.length == 0) {
-        res.sendStatus(404);  
+        return res.status(404).send({
+            message: 'Not Found'
+        }); 
     } else {
         res.send(info_array);
         return true;
@@ -61,31 +66,30 @@ app.get('/api/courses', (req, res) => {
         }
     } 
     if (info_array.length == 0) {
-        res.sendStatus(404);  
+        return res.status(404).send({
+            message: 'Not Found'
+        });  
     } else {
         res.send(info_array);
         return true;
     }
   }
 
-  else if ((subject_name == "All_Subjects" || subject_name != "All_Subjects") && number != "" && component == "all_components") {
+  else if ((subject_name == "All_Subjects" || subject_name != "All_Subjects") && number != "" && component == "all_components") { // If course code area is filled out
     for (i = 0; i < data.length; i++) {
         if (number == data[i].catalog_nbr) {
             info_array.push(data[i]);            
         }
     } 
     if (info_array.length == 0) {
-        res.sendStatus(404);  
+        return res.status(404).send({
+            message: 'Not Found'
+        });  
     } else {
         res.send(info_array);
         return true;
     }
   }    
 });
-
-
-
-
-
 
 app.listen(3000, () => console.log('Listening on port 3000'));
