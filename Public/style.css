@@ -34,6 +34,13 @@ input[type=button] {
     font-size: 20px;
     font-weight: bold;
  }
+
+ #schedule_button {
+     width: 220px;
+     font-size: 15px;
+     font-weight: bold;
+     margin-left: 20px;
+ }
   
 input[type=button]:hover {
    background-color: goldenrod;
@@ -55,6 +62,10 @@ div {
 
  #subject {
      padding-left: 45px;
+ }
+
+ #schedules {
+     padding-left: 170px;
  }
 
 label {
@@ -151,4 +162,42 @@ tr {
 h2 {
     font-weight: bold;
     text-align: center;
+}
+
+#create_schedule {
+    margin-left: 80%;
+    color: white;
+    font-size: 40px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;    
+    position: relative;
+    top: -120%;    
+    pointer-events: none;
+    cursor: default;
+}
+
+#manage_schedule {
+    margin-left: 77%;
+    color: white;
+    font-size: 40px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;    
+    position: relative;
+    top: -120%;    
+    pointer-events: none;
+    cursor: default;
+}
+
+#schedule_div {
+    position: absolute;
+    bottom: 50%;
+    left: 25%;
+}
+
+#schedulename {
+    padding-left: 30px;
+}
+
+#schedulebox {
+    position: absolute;
+    bottom: 45%;
+    left: 27%;
 }

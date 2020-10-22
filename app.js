@@ -2,12 +2,43 @@ const express = require('express');
 const app = express();
 const data = require("./Lab3-timetable-data.json");
 const data_count = Object.keys(data).length;
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+const adapter = new FileSync('schedule_database.json');
+const db = low(adapter);
+
 app.use(express.static('Public'));
+
+// Database defaults
+
+db.defaults({schedules: []})
+.write()
+
+db.get('schedules')
+.push({ schedule_id : "Summer School", schedule_information: []})
+.write()
+
+db.get('schedules')
+.push({ schedule_id: "Main Year", schedule_information: []})
+.write()
+
+db.get('schedules[0].schedule_information')
+.push({ subject: 1})
+.write()
+
+db.get('schedules[1].schedule_information')
+.push({ subject: 2, course_id: 27})
+.write()
+
+db.get('schedules[1].schedule_information')
+.push({ subject: 3, course_id: 30})
+.write()
+
 
 
 var subject_array = [];
 var info_array = [];
-
+ 
 // Delete duplicates in array for unique subjects
 function removeDuplicates(array) {
     return array.filter((a, b) => array.indexOf(a) === b)
@@ -74,8 +105,24 @@ app.get('/api/courses', (req, res) => {
         return true;
     }
   }
+  
+  else if ((subject_name != "All_Subjects" && number != "" && component == "all_components")) { // If course code area is filled out
+    for (i = 0; i < data.length; i++) {
+        if (subject_name == data[i].subject && number == data[i].catalog_nbr) {
+            info_array.push(data[i]);            
+        }
+    } 
+    if (info_array.length == 0) {
+        return res.status(404).send({
+            message: 'Not Found'
+        });  
+    } else {
+        res.send(info_array);
+        return true;
+    }
+  } 
 
-  else if ((subject_name == "All_Subjects" || subject_name != "All_Subjects") && number != "" && component == "all_components") { // If course code area is filled out
+  else if ((subject_name == "All_Subjects" && number != "" && component == "all_components")) { // If course code area is filled out
     for (i = 0; i < data.length; i++) {
         if (number == data[i].catalog_nbr) {
             info_array.push(data[i]);            

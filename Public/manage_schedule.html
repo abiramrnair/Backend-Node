@@ -4,10 +4,10 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
 <html>
-    <head>        
+    <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Lab 3</title>
+        <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="style.css">
@@ -20,36 +20,25 @@
             <a href="http://localhost:3000/">Home</a>
             <a href="build_schedule.html">Build Schedule</a>
             <a href="manage_schedule.html">Manage Schedules</a>
-            <a id="lab3">LAB 3</a>
+            <a id="manage_schedule">MANAGE SCHEDULES</a>
         </div>
 
-        <div>
+        <div id="schedulebox">
             <form>
-            <label for="subject" id = "subject">Search by Subject:</label>
-              <select id="select_subject" name="subject">
-                <option value="All_Subjects" hidden>All Subjects</option>                
-            </select><br>   
-                     
-            <label for="course_number">Search by Course Code:</label>
-            <input type="text" id="course_nbr" name="course_number" placeholder="eg. 1927A"><br>
+                                
+            <label for="schedule_name">Enter Desired Schedule Name:</label>
+            <input type="text" id="schedule_name" name="schedule_name" placeholder="eg. Winter 1999">
+            <input id = "schedule_button" type="button" value="Create Schedule" onclick="listCourses()"><br>
           
-            <label for="course_component" id="course_component">Component:</label>
-            <select id="components" name="course_cmpnt">
-                <option value="all_components">All</option>
-                <option value="LEC">Lecture</option>
-                <option value="TUT">Tutorial</option>
-                <option value="LAB">Laboratory</option>
+            <label for="schedule_component" id="schedules">Schedule:</label>
+            <select name="schedules" id="all_schedules">
+                <option value="all_schedules" hidden>View Available Schedules</option>
             </select><br>
 
-            <input id = "submitbutton" type="button" value="Submit" onclick="listCourses()">
+            <input id = "schedule_button" type="button" value="Delete Selected Schedule" onclick="listCourses()"><br>
+            <input id = "schedule_button" type="button" value="Delete All Schedules" onclick="listCourses()">            
             </form>
         </div>
-
-        <div id = "searchbox">
-
-        </div>
-
-    
-        <script src="script.js" async defer></script>        
+        <script src="script.js" async defer></script>
     </body>
 </html>

@@ -4,7 +4,7 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
 <html>
-    <head>        
+    <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Lab 3</title>
@@ -20,10 +20,10 @@
             <a href="http://localhost:3000/">Home</a>
             <a href="build_schedule.html">Build Schedule</a>
             <a href="manage_schedule.html">Manage Schedules</a>
-            <a id="lab3">LAB 3</a>
+            <a id="create_schedule">BUILD SCHEDULE</a>
         </div>
 
-        <div>
+        <div id = "schedule_div">
             <form>
             <label for="subject" id = "subject">Search by Subject:</label>
               <select id="select_subject" name="subject">
@@ -40,16 +40,19 @@
                 <option value="TUT">Tutorial</option>
                 <option value="LAB">Laboratory</option>
             </select><br>
+            <label for="schedule_component" id="schedules">Schedule:</label>
+            <select name="schedules" id="all_schedules">
+                <option value="all_schedules" hidden>View Available Schedules</option>
+            </select>
 
             <input id = "submitbutton" type="button" value="Submit" onclick="listCourses()">
             </form>
         </div>
-
+        
         <div id = "searchbox">
 
         </div>
-
-    
-        <script src="script.js" async defer></script>        
+        
+        <script src="script.js" async defer></script>
     </body>
 </html>
