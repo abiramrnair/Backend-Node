@@ -10,30 +10,27 @@ const db = low(adapter);
 app.use(express.static('Public'));
 
 // Database defaults
-
 db.defaults({schedules: []})
 .write()
 
-db.get('schedules')
-.push({ schedule_id : "Summer School", schedule_information: []})
-.write()
 
-db.get('schedules')
-.push({ schedule_id: "Main Year", schedule_information: []})
-.write()
+app.post('/api/schedules/createschedule', (req, res) => {
+    curr_data = req.query;
 
-db.get('schedules[0].schedule_information')
-.push({ subject: 1})
-.write()
+    db.get('schedules')
+    .push({ schedule_id: curr_data.name, schedule_information: []})
+    .write()
 
-db.get('schedules[1].schedule_information')
-.push({ subject: 2, course_id: 27})
-.write()
+    return res.status(200).send({
+        message: "Status 200 OK, schedule added"
+    }); 
+});
 
-db.get('schedules[1].schedule_information')
-.push({ subject: 3, course_id: 30})
-.write()
-
+app.get('/api/schedules/dropdown', (req, res) => {
+    let name_array = [];
+    name_array = db.get('schedules').map('schedule_id').value();  
+    res.send(name_array);
+});
 
 
 var subject_array = [];

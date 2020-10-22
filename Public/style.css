@@ -36,11 +36,25 @@ input[type=button] {
  }
 
  #schedule_button {
-     width: 220px;
+     width: 230px;
      font-size: 15px;
      font-weight: bold;
      margin-left: 20px;
  }
+
+ #delete_schedule_button {
+     width: 230px;
+     margin-left: 5px;
+     font-size: 15px;
+     font-weight: bold;
+ }
+
+ #delete_all_schedule_button {
+    width: 230px;
+    margin-left: 5px;
+    font-size: 15px;
+    font-weight: bold;
+}
   
 input[type=button]:hover {
    background-color: goldenrod;

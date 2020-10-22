@@ -28,17 +28,24 @@
                                 
             <label for="schedule_name">Enter Desired Schedule Name:</label>
             <input type="text" id="schedule_name" name="schedule_name" placeholder="eg. Winter 1999">
-            <input id = "schedule_button" type="button" value="Create Schedule" onclick="listCourses()"><br>
-          
+            <form action="" method="post">
+            <input id = "schedule_button" type="button" value="Create Schedule" onclick="createSchedule()"><br>
+            </form>
+
             <label for="schedule_component" id="schedules">Schedule:</label>
             <select name="schedules" id="all_schedules">
                 <option value="all_schedules" hidden>View Available Schedules</option>
             </select><br>
 
-            <input id = "schedule_button" type="button" value="Delete Selected Schedule" onclick="listCourses()"><br>
-            <input id = "schedule_button" type="button" value="Delete All Schedules" onclick="listCourses()">            
+            <input id = "delete_schedule_button" type="button" value="Delete Selected Schedule" onclick="listCourses()"><br>
+            <input id = "delete_all_schedule_button" type="button" value="Delete All Schedules" onclick="removeAllSchedules()">            
             </form>
         </div>
-        <script src="script.js" async defer></script>
+
+        <div id = "searchbox">
+
+        </div>
+
+        <script src="schedule.js" async defer></script>
     </body>
 </html>
