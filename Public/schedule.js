@@ -20,9 +20,59 @@ function createDropDownList(subjectlist) {
 
 getDropDown();
 
-async function deleteAllSchedules() {
-    const response = await fetch("http://localhost:3000/api/schedules/delete_all");   
+async function deleteSingleSchedule() {    
+    var box = document.getElementById("searchbox");
+    box.style.opacity = "1";
+    box.style.backgroundColor = "white";
+    var item = document.getElementById("all_schedules").value;
+    var link = "http://localhost:3000/api/schedules/delete?" + "schedule=" + item;
+    const response = await fetch(link, {method: 'delete'});   
     const data = await response.json();
+
+    if (data.message == "Status 200 OK, Schedule Item Deleted") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("The Schedule Has Been Deleted, Please Refresh to View Changes");
+        h.appendChild(text);
+        box.appendChild(h);
+    }
+    
+    else if (data.message == "Status 404, Schedule Not Found") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("Please make a schedule first or choose a valid schedule item");
+        h.appendChild(text);
+        box.appendChild(h);
+    }
+    else {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("Status 400, Something Went Wrong");
+        h.appendChild(text);
+        box.appendChild(h);
+    }
+}
+
+
+async function deleteAllSchedules() {
+    var box = document.getElementById("searchbox");
+    box.style.opacity = "1";
+    box.style.backgroundColor = "white";
+    const response = await fetch("http://localhost:3000/api/schedules/delete_all", {method: 'delete'});   
+    const data = await response.json();
+
+    if (data.message == "Status 200 Request Succeeded, All Schedules Deleted") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("All Schedules Deleted, Please Refresh to View Changes");
+        h.appendChild(text);
+        box.appendChild(h);
+    } else {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("Status 400, Something Went Wrong");
+        h.appendChild(text);
+        box.appendChild(h);
+    }
+
+    document.getElementById("delete_schedule_button").disabled = true;
+    document.getElementById("delete_all_schedule_button").disabled = true;
+    document.getElementById("schedule_button").disabled = true;
 }
 
 function goHome() {

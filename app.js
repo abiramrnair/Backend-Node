@@ -13,9 +13,14 @@ app.use(express.static('Public'));
 db.defaults({schedules: []})
 .write()
 
-
 app.post('/api/schedules/createschedule', (req, res) => {
     curr_data = req.query;
+
+    if (db.get('schedules').find({schedule_id: curr_data.name}).value()) {
+        return res.status(400).send({
+            message: "Status 400, Something Went Wrong"
+        });
+    } else {
 
     db.get('schedules')
     .push({ schedule_id: curr_data.name, schedule_information: []})
@@ -23,13 +28,53 @@ app.post('/api/schedules/createschedule', (req, res) => {
 
     return res.status(200).send({
         message: "Status 200 OK, schedule added"
-    }); 
+    });
+}
 });
 
 app.get('/api/schedules/dropdown', (req, res) => {
     let name_array = [];
     name_array = db.get('schedules').map('schedule_id').value();  
     res.send(name_array);
+});
+
+app.delete('/api/schedules/delete', (req, res) => {
+    curr_data = req.query;
+
+    if (curr_data.schedule == "all_schedules") {
+        return res.status(404).send({
+            message: "Status 404, Schedule Not Found"
+        });
+    }
+
+    db.get('schedules')
+    .remove({schedule_id: curr_data.schedule})
+    .write()
+
+    if (db.has('schedule_id: curr_data.schedule').value()) {
+        return res.status(400).send({
+            message: "Status 400, Something Went Wrong"
+        });
+    } else {
+        return res.status(200).send({
+            message: "Status 200 OK, Schedule Item Deleted"
+        });
+    }
+})
+
+app.delete('/api/schedules/delete_all', (req, res) => {
+
+    db.get('schedules').remove({}).write();
+
+    if (db.get('schedules').size().value() == 0) {
+        return res.status(200).send({
+            message: "Status 200 Request Succeeded, All Schedules Deleted"
+        }); 
+    } else {
+        return res.status(400).send({
+            message: "Status 400, Something Went Wrong"
+        });
+    }
 });
 
 
@@ -50,7 +95,6 @@ app.get('/api/dropdown', (req, res) => {
     }
 
     subject_array = removeDuplicates(subject_array);
-
     res.send(subject_array);
 });
 
