@@ -80,7 +80,11 @@ div {
 
  #schedules {
      padding-left: 170px;
- }
+}
+
+#schedules_2 {
+    padding-left: 117px;
+}
 
 label {
      font-weight: bold;
@@ -214,4 +218,10 @@ h2 {
     position: absolute;
     bottom: 45%;
     left: 27%;
+}
+
+#build_schedule_div {
+    position: absolute;
+    bottom: 45%;
+    left: 35%;
 }

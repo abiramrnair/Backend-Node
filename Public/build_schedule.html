@@ -23,7 +23,7 @@
             <a id="create_schedule">BUILD SCHEDULE</a>
         </div>
 
-        <div id = "schedule_div">
+        <div id = "build_schedule_div">
             <form>
             <label for="subject" id = "subject">Search by Subject:</label>
               <select id="select_subject" name="subject">
@@ -40,10 +40,10 @@
                 <option value="TUT">Tutorial</option>
                 <option value="LAB">Laboratory</option>
             </select><br>
-            <label for="schedule_component" id="schedules">Schedule:</label>
+            <label for="schedule_component" id="schedules_2">Schedule:</label>
             <select name="schedules" id="all_schedules">
                 <option value="all_schedules" hidden>View Available Schedules</option>
-            </select>
+            </select><br>
 
             <input id = "submitbutton" type="button" value="Submit" onclick="listCourses()">
             </form>
@@ -53,6 +53,6 @@
 
         </div>
         
-        <script src="script.js" async defer></script>
+        <script src="build_schedule.js" async defer></script>
     </body>
 </html>
