@@ -164,11 +164,27 @@ async function listCourses() {
 }
 }
 
-async function doesCourseExist(course_id) { // This helps determine whether a button should be created or not to add
+async function doesCourseExist(course, i) { // This helps determine whether a button should be created or not to add
+    let course_name = course[i].course_info[0].course_id;
+    let schedule_name = document.getElementById("all_schedules").value;
+    var link = "http://localhost:3000/api/schedules/check?" + "schedule=" + schedule_name + "course_name=" + course_name;
 
+    const response = await fetch(link);
+    const data = await response.json();
+
+    if (data.message == "Course Exists") {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 async function createScheduleEntry(course_id) { // clicking the button does this function to add entry to chosen schedule
 
+
+    var link = "http://localhost:3000/api/schedules/check?" + "schedule=" + schedule_name + "subject_code=" + course_name + "course_code" + course_code;
+
+    const response = await fetch(link);
+    const data = await response.json();
 }
 

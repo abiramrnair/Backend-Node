@@ -32,6 +32,52 @@ app.post('/api/schedules/createschedule', (req, res) => {
 }
 });
 
+app.get('/api/schedules/check', (req, res) => {
+    const curr_data = req.query;
+    const sched_name = curr_data.schedule;
+    const crs_name = curr_data.course_name;
+    sched_array = db.get('schedules').map('schedule_id').value();
+    
+    for (i = 0; i < sched_array.length; i++) {
+        if (sched_array[i] == sched_name) {
+            var ref_num = i;            
+        }
+    }
+
+   course_array = db.get('schedules[' + ref_num + '].schedule_information').map().value();   
+   
+   for (i = 0; i < course_array.length; i++) {
+       if (course_array[i].course_id == crs_name) {
+            res.send("Course Exists");
+            return false;        
+        }  
+    } 
+
+    res.send("Course Does Not Exist");
+    
+});
+
+app.post('/api/schedules/addcourse', (req, res) => {
+    const curr_data = req.query;
+    const sched_name = curr_data.schedule;
+    const course_name = curr_data.course_name;
+    const sbj_code = curr_data.subject_code;    
+    const crs_code = curr_data.course_code;
+
+    sched_array = db.get('schedules').map('schedule_id').value();
+    
+    for (i = 0; i < sched_array.length; i++) {
+        if (sched_array[i] == sched_name) {
+            var ref_num = i; 
+            db.get('schedules[' + ref_num + '].schedule_information').push({course_id: course_name, subject_code: sbj_code, course_code: crs_code}).write(); 
+            res.send("Course Added");
+            return true;          
+        }
+    }
+
+    res.send("Error adding course");
+});
+
 app.get('/api/schedules/dropdown', (req, res) => {
     let name_array = [];
     name_array = db.get('schedules').map('schedule_id').value();  
