@@ -35,6 +35,17 @@ input[type=button] {
     font-weight: bold;
  }
 
+ #add_course_btn {     
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+ }
+
+ #add_course_btn:hover {
+    background-color: #F7CAC9;
+ }
+
  #schedule_button {
      width: 230px;
      font-size: 15px;
@@ -135,7 +146,7 @@ label {
     width: 1110px;
     height: fit-content;
     top: 600px;
-    left: 400px;      
+    left: 360px;      
 }
 
 table {

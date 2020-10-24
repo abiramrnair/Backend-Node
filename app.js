@@ -48,13 +48,15 @@ app.get('/api/schedules/check', (req, res) => {
    
    for (i = 0; i < course_array.length; i++) {
        if (course_array[i].course_id == crs_name) {
-            res.send("Course Exists");
-            return false;        
+        return res.status(200).send({
+            message: "Exists"
+        });        
         }  
     } 
 
-    res.send("Course Does Not Exist");
-    
+    return res.status(200).send({
+        message: "Course does not exist"
+    });   
 });
 
 app.post('/api/schedules/addcourse', (req, res) => {
@@ -154,7 +156,7 @@ app.get('/api/courses', (req, res) => {
 
   if (subject_name == "All_Subjects" && number == "") { // done
     return res.status(400).send({
-        message: 'Too many results to display. Please narrow search fields.'
+        message: "Too many results to display. Please narrow search fields."
     });      
   }
 
@@ -168,7 +170,7 @@ app.get('/api/courses', (req, res) => {
 
     if (info_array.length == 0) {
         return res.status(404).send({
-            message: 'Not Found'
+            message: "Not Found"
         }); 
     } else {
         res.send(info_array);
@@ -185,7 +187,7 @@ app.get('/api/courses', (req, res) => {
     } 
     if (info_array.length == 0) {
         return res.status(404).send({
-            message: 'Not Found'
+            message: "Not Found"
         });  
     } else {
         res.send(info_array);
@@ -201,7 +203,7 @@ app.get('/api/courses', (req, res) => {
     } 
     if (info_array.length == 0) {
         return res.status(404).send({
-            message: 'Not Found'
+            message: "Not Found"
         });  
     } else {
         res.send(info_array);
@@ -217,7 +219,7 @@ app.get('/api/courses', (req, res) => {
     } 
     if (info_array.length == 0) {
         return res.status(404).send({
-            message: 'Not Found'
+            message: "Not Found"
         });  
     } else {
         res.send(info_array);
