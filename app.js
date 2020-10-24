@@ -35,7 +35,7 @@ app.post('/api/schedules/createschedule', (req, res) => {
 app.get('/api/schedules/check', (req, res) => {
     const curr_data = req.query;
     const sched_name = curr_data.schedule;
-    const crs_name = curr_data.course_name;
+    const crs_code = curr_data.course_code;
     sched_array = db.get('schedules').map('schedule_id').value();
     
     for (i = 0; i < sched_array.length; i++) {
@@ -47,7 +47,7 @@ app.get('/api/schedules/check', (req, res) => {
    course_array = db.get('schedules[' + ref_num + '].schedule_information').map().value();   
    
    for (i = 0; i < course_array.length; i++) {
-       if (course_array[i].course_id == crs_name) {
+       if (course_array[i].course_code == crs_code) {
         return res.status(200).send({
             message: "Exists"
         });        
@@ -71,13 +71,16 @@ app.post('/api/schedules/addcourse', (req, res) => {
     for (i = 0; i < sched_array.length; i++) {
         if (sched_array[i] == sched_name) {
             var ref_num = i; 
-            db.get('schedules[' + ref_num + '].schedule_information').push({course_id: course_name, subject_code: sbj_code, course_code: crs_code}).write(); 
-            res.send("Course Added");
-            return true;          
+            db.get('schedules[' + ref_num + '].schedule_information').push({course_name: course_name, subject_code: sbj_code, course_code: crs_code}).write(); 
+            return res.status(200).send({
+                message: "Course Added"
+            });          
         }
     }
 
-    res.send("Error adding course");
+    return res.status(400).send({
+        message: "Error Adding Course"
+    });
 });
 
 app.get('/api/schedules/dropdown', (req, res) => {

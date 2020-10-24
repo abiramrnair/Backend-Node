@@ -177,17 +177,25 @@ async function listCourses() {
         var text = document.createTextNode(data[i].course_info[0].enrl_stat);
         cell9.appendChild(text);
 
-        if (await doesCourseExist(data[i].className) == false) { // Course does not exist on schedule
+        if (await doesCourseExist(data[i].catalog_nbr) == false) { // Course does not exist on schedule
             var text = document.createTextNode("Add Course"); 
             var btn = document.createElement("button");
-            btn.id = "add_course_btn";
+            btn.className = "add_course_btn";
+            btn.id = data[i].catalog_nbr;
+            let clsname = data[i].className;
+            let sbjct = data[i].subject;
+            let crsnbr = data[i].catalog_nbr;            
+            btn.addEventListener('click', function() {
+                createScheduleEntry(clsname, sbjct, crsnbr);
+                document.getElementById(crsnbr).textContent = "Course Added";
+                document.getElementById(crsnbr).disabled = 'true';
+            });
             btn.appendChild(text);
             cell10.appendChild(btn);
-        } else if (await doesCourseExist(data[i].className) == true) { // Course exists on schedule
+        } else if (await doesCourseExist(data[i].catalog_nbr) == true) { // Course exists on schedule
             var text = document.createTextNode("Course Added"); 
             cell10.appendChild(text);
-        }
-        
+        }        
         box.appendChild(table);
     }
 
@@ -197,10 +205,10 @@ async function listCourses() {
 }
 }
 
-async function doesCourseExist(coursename) { // This helps determine whether a button should be created or not to add
+async function doesCourseExist(coursenbr) { // This helps determine whether a button should be created or not to add
     var schedule_name = document.getElementById("all_schedules").value;
     
-    let link = "http://localhost:3000/api/schedules/check?" + "schedule=" + schedule_name + "&course_name=" + coursename;
+    let link = "http://localhost:3000/api/schedules/check?" + "schedule=" + schedule_name + "&course_code=" + coursenbr;
 
     const response = await fetch(link);
     const data = await response.json();       
@@ -213,11 +221,17 @@ async function doesCourseExist(coursename) { // This helps determine whether a b
 }
 
 async function createScheduleEntry(coursename, subjectcode, coursecode) { // clicking the button does this function to add entry to chosen schedule
-    const schedule_name = document.getElementById("all_schedules").textContent;
+    var schedule_name = document.getElementById("all_schedules").value;
 
-    let link = "http://localhost:3000/api/schedules/check?" + "course_name=" + coursename + "&subject_code=" + subjectcode + "&course_code" + coursecode;
+    let link = "http://localhost:3000/api/schedules/addcourse?" + "schedule=" + schedule_name + "&course_name=" + coursename + "&subject_code=" + subjectcode + "&course_code=" + coursecode;
 
-    const response = await fetch(link);
+    const response = await fetch(link, {method: 'post'});
     const data = await response.json();
+
+    if (data.message == "Course Added") {
+        return true;
+    } else {
+        return false;
+    } 
 }
 
