@@ -6,6 +6,6 @@
 # Instructor: J. Samarabandu
 
 The dependencies used in this Lab 3 are...
-    * express
-    * node-fetch
-    * lowdb
+    *express
+    *node-fetch
+    *lowdb
