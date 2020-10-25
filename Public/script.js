@@ -32,14 +32,13 @@ async function listCourses() {
     var coursenumber = document.getElementById("course_nbr").value;
     var component = document.getElementById("components").value;
     var link = "http://localhost:3000/api/courses?" + "subject=" + subject + "&course_number=" + coursenumber + "&course_cmpnt=" + component;
-    console.log(link);
+    
     document.getElementById("select_subject").disabled = true;
     document.getElementById("course_nbr").disabled = true;
     document.getElementById("components").disabled = true;
     
     const response = await fetch(link);
-    const data = await response.json(); 
-    
+    const data = await response.json();    
 
     if (data.message == "Not Found") {
         var h = document.createElement("H2");

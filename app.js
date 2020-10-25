@@ -32,6 +32,30 @@ app.post('/api/schedules/createschedule', (req, res) => {
 }
 });
 
+app.get('/api/schedules/load/:schedule_id', (req, res) => {
+    const data = req.params.schedule_id;
+    const sched_array = db.get('schedules').map('schedule_id').value();
+    
+    for (i = 0; i < sched_array.length; i++) {
+        if (sched_array[i] == data) {
+            var ref_num = i;            
+        }
+    }
+
+    const sched_list = db.get('schedules[' + ref_num + '].schedule_information').map().value();
+
+    if (sched_list.length > 0) {
+        return res.status(200).send(
+            sched_list            
+        );        
+    }
+    else {
+        return res.status(200).send({
+            message: "No Courses"
+        });
+    }
+});
+
 app.get('/api/schedules/check', (req, res) => {
     const curr_data = req.query;
     const sched_name = curr_data.schedule;

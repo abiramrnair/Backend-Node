@@ -20,6 +20,54 @@ function createDropDownList(subjectlist) {
 
 getDropDown();
 
+async function displayScheduleItems() {
+    var box = document.getElementById("searchbox");
+    box.style.opacity = "1";
+    box.style.backgroundColor = "white";
+    var schedule = document.getElementById("all_schedules").value;
+    var link = "http://localhost:3000/api/schedules/load/" + schedule;
+
+    document.getElementById("delete_schedule_button").disabled = true;
+    document.getElementById("delete_all_schedule_button").disabled = true;
+    document.getElementById("schedule_button").disabled = true;
+    var button = document.getElementById("load_schedule_button");   
+    button.value = "Load Another Schedule";
+    document.getElementById("load_schedule_button").setAttribute('onclick','goHome()');
+
+    const response = await fetch(link);
+    const data = await response.json();
+
+    if (data.message == "No Courses") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("There Are No Courses Added To This Draft, Go To Build Schedule To Get Started");
+        h.appendChild(text);
+        box.appendChild(h);
+    } else {
+
+    var h = document.createElement("H2");
+    h.style.paddingBottom = "20px";
+    h.style.textDecoration = "underline";
+    var text = document.createTextNode("Displaying " + data.length + " Saved Courses In This Draft");
+    h.appendChild(text);
+    box.appendChild(h);
+    
+    for (i = 0; i < data.length; i++) {        
+        let crsname = document.createElement("ul");  
+        crsname.textContent = (i+1) + ". " + data[i].course_name;     
+        let subject_name = document.createElement("li");
+        var text = document.createTextNode("Subject Code: " + data[i].subject_code);
+        subject_name.appendChild(text);
+        var text = document.createTextNode("Course Code: " + data[i].course_code);
+        let course_code = document.createElement("li");
+        course_code.appendChild(text);
+        crsname.appendChild(subject_name);
+        crsname.appendChild(course_code);
+        box.appendChild(crsname);
+    }
+    }
+
+}
+
 async function deleteSingleSchedule() {    
     var box = document.getElementById("searchbox");
     box.style.opacity = "1";
