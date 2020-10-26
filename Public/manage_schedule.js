@@ -46,8 +46,8 @@ async function displayScheduleItems() {
 
     var h = document.createElement("H2");
     h.style.paddingBottom = "20px";
-    h.style.textDecoration = "underline";
-    var text = document.createTextNode("Displaying " + data.length + " Saved Courses In This Draft");
+    h.style.fontStyle = "italic";
+    var text = document.createTextNode("Displaying " + data.length + " Saved Courses In Draft " + '"' + schedule + '"');
     h.appendChild(text);
     box.appendChild(h);
     

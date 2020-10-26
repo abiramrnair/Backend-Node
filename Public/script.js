@@ -62,6 +62,13 @@ async function listCourses() {
 
     else {
 
+        var h = document.createElement("H2");
+        h.style.paddingBottom = "20px";
+        h.style.fontStyle = "italic";
+        var text = document.createTextNode("Displaying " + data.length + " Search Results");
+        h.appendChild(text);
+        box.appendChild(h);
+
     for (i = 0; i < data.length; i++) {
         
         var h = document.createElement("H3");
