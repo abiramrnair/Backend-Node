@@ -233,7 +233,7 @@ async function createScheduleEntry(coursename, subjectcode, coursecode) { // cli
     let link = "http://localhost:3000/api/schedules/addcourse?" + "schedule=" + schedule_name + "&course_name=" + coursename.replace(/[&#,+()$~%.'":*?<>{}]/g, "AND") + "&subject_code=" + subjectcode + "&course_code=" + coursecode;
 
     // There was a problem where course names with special characters were confusing the URL, so I used a filter function to replace & but not / with "AND" ^^
-    const response = await fetch(link, {method: 'post'});
+    const response = await fetch(link, {method: 'put'});
     const data = await response.json();
 
     if (data.message == "Course Added") {

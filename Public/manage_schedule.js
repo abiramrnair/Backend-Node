@@ -135,7 +135,7 @@ async function createSchedule() {
     var name = document.getElementById("schedule_name").value;
     var link = "http://localhost:3000/api/schedules/createschedule?" + "name=" + name;
 
-    const response = await fetch(link, {method: 'post'}); // Specify that this is a POST request (default is GET)
+    const response = await fetch(link, {method: 'put'}); // Specify that this is a POST request (default is GET)
     const data = await response.json();
 
     if (data.message == "Status 200 OK, schedule added") {
@@ -146,7 +146,19 @@ async function createSchedule() {
         var button = document.getElementById("schedule_button");   
         button.value = "Create Another Schedule";
         document.getElementById("schedule_button").setAttribute('onclick','goHome()');
-    } else {
+    } 
+    
+    else if (data.message == "Schedule Name Is Invalid") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("Schedule Name Is Invalid");
+        h.appendChild(text);
+        box.appendChild(h);
+        var button = document.getElementById("schedule_button");   
+        button.value = "Create Another Schedule";
+        document.getElementById("schedule_button").setAttribute('onclick','goHome()');
+    }
+
+    else {
         var h = document.createElement("H2");
         var text = document.createTextNode("Schedule Name Already Exists!");
         h.appendChild(text);

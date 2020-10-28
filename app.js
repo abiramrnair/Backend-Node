@@ -6,6 +6,7 @@ const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('schedule_database.json');
 const db = low(adapter);
+const Joi = require('joi');
 
 app.use(express.static('Public'));
 
@@ -13,8 +14,30 @@ app.use(express.static('Public'));
 db.defaults({schedules: []})
 .write()
 
-app.post('/api/schedules/createschedule', (req, res) => {
+// JOI function for validating inputs for reuse in API
+function validateSchedule(schedule) {
+    const schema = Joi.object({
+        name: Joi.string().min(1).required() // Shedule name cannot be blank space or have any URL confusing characters
+    });
+    return schema.validate({ name: schedule});
+}
+
+function validateCourseCode(coursecode) {
+    const schema = Joi.object({
+        number: Joi.string().max(5).uppercase().required() // Can either be a four digit number 1234 or a five character string 1234A
+    });
+    return schema.validate({ number: coursecode});
+}
+
+app.put('/api/schedules/createschedule', (req, res) => {
     curr_data = req.query;
+    const result = validateSchedule(curr_data.name);   
+    
+    if (result.error) {
+        return res.status(400).send({
+            message: "Schedule Name Is Invalid"
+        });
+    }
 
     if (db.get('schedules').find({schedule_id: curr_data.name}).value()) {
         return res.status(400).send({
@@ -83,7 +106,7 @@ app.get('/api/schedules/check', (req, res) => {
     });   
 });
 
-app.post('/api/schedules/addcourse', (req, res) => {
+app.put('/api/schedules/addcourse', (req, res) => {
     const curr_data = req.query;
     const sched_name = curr_data.schedule;
     const course_name = curr_data.course_name;
@@ -162,7 +185,6 @@ function removeDuplicates(array) {
 };
 
 // Get drop down list and send it to browser
-
 app.get('/api/dropdown', (req, res) => {
 
     for (i = 0; i < data_count; i++) {
