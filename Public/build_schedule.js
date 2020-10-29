@@ -65,7 +65,7 @@ async function listCourses() {
 
     if (data.message == "Not Found") {
         var h = document.createElement("H2");
-        var text = document.createTextNode("Error 404, Course not Found!");
+        var text = document.createTextNode("Course Codes Must Be 4-5 Characters Long And Are Case Sensitive");
         h.appendChild(text);
         box.appendChild(h);
         var button = document.getElementById("submitbutton");   

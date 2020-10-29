@@ -18,7 +18,7 @@ function createDropDownList(subjectlist) {
     }
 }
 
-getDropDown();
+getDropDown(); // Call function when page loads
 
 function goHome() {
     window.location.href = "index.html";
@@ -42,7 +42,7 @@ async function listCourses() {
 
     if (data.message == "Not Found") {
         var h = document.createElement("H2");
-        var text = document.createTextNode("Error 404, Course not Found!");
+        var text = document.createTextNode("Course Codes Must Be 4-5 Characters Long And Are Case Sensitive");
         h.appendChild(text);
         box.appendChild(h);
         var button = document.getElementById("submitbutton");   
@@ -58,10 +58,9 @@ async function listCourses() {
         var button = document.getElementById("submitbutton");   
         button.value = "Click here to search again";
         document.getElementById("submitbutton").setAttribute('onclick','goHome()');
-    }    
-
+    }
+    
     else {
-
         var h = document.createElement("H2");
         h.style.paddingBottom = "20px";
         h.style.fontStyle = "italic";
@@ -93,8 +92,7 @@ async function listCourses() {
         var cell6 = row.insertCell(5);
         var cell7 = row.insertCell(6);
         var cell8 = row.insertCell(7);
-        var cell9 = row.insertCell(8);
-        
+        var cell9 = row.insertCell(8);        
 
         var text = document.createTextNode("Section");
         cell1.appendChild(text);
@@ -113,8 +111,7 @@ async function listCourses() {
         var text = document.createTextNode("Instructor");
         cell8.appendChild(text);
         var text = document.createTextNode("Status");
-        cell9.appendChild(text);       
-        
+        cell9.appendChild(text);               
 
         var row = table.insertRow(1);
         var cell1 = row.insertCell(0);

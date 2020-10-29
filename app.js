@@ -1,12 +1,12 @@
 const express = require('express');
 const app = express();
 const data = require("./Lab3-timetable-data.json");
-const data_count = Object.keys(data).length;
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('schedule_database.json');
 const db = low(adapter);
 const Joi = require('joi');
+const { number } = require('joi');
 
 app.use(express.static('Public'));
 
@@ -175,7 +175,6 @@ app.delete('/api/schedules/delete_all', (req, res) => {
     }
 });
 
-
 var subject_array = [];
 var info_array = [];
  
@@ -187,7 +186,7 @@ function removeDuplicates(array) {
 // Get drop down list and send it to browser
 app.get('/api/dropdown', (req, res) => {
 
-    for (i = 0; i < data_count; i++) {
+    for (i = 0; i < data.length; i++) {
         subject_array[i] = data[i].subject; 
     }
 
@@ -200,16 +199,16 @@ app.get('/api/courses', (req, res) => {
   curr_data = req.query;
   info_array = [];  
   subject_name = curr_data.subject;
-  number = curr_data.course_number;
+  num = curr_data.course_number;
   component = curr_data.course_cmpnt;
 
-  if (subject_name == "All_Subjects" && number == "") { // done
+  if (subject_name == "All_Subjects" && num == "") { // done
     return res.status(400).send({
         message: "Too many results to display. Please narrow search fields."
     });      
   }
 
-  else if (subject_name != "All_Subjects" && number == "" && component != "all_components") { // Subject area chosen and specific component chosen
+  else if (subject_name != "All_Subjects" && num == "" && component != "all_components") { // Subject area chosen and specific component chosen
 
     for (i = 0; i < data.length; i++) {
         if (subject_name == data[i].subject && component == data[i].course_info[0].ssr_component) {
@@ -227,7 +226,7 @@ app.get('/api/courses', (req, res) => {
     }    
   }
 
-  else if (subject_name != "All_Subjects" && number == "" && component == "all_components") { // Subject area chosen and any component chosen
+  else if (subject_name != "All_Subjects" && num == "" && component == "all_components") { // Subject area chosen and any component chosen
     
     for (i = 0; i < data.length; i++) {
         if (subject_name == data[i].subject) {
@@ -244,13 +243,16 @@ app.get('/api/courses', (req, res) => {
     }
   }
   
-  else if ((subject_name != "All_Subjects" && number != "" && component == "all_components")) { // If course code area is filled out
+  else if ((subject_name != "All_Subjects" && num != "" && component == "all_components")) { // If course code, subject name and component are all filled out
+
+    const result = validateCourseCode(num);
+
     for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject && number == data[i].catalog_nbr) {
+        if (subject_name == data[i].subject && num == data[i].catalog_nbr) {
             info_array.push(data[i]);            
         }
     } 
-    if (info_array.length == 0) {
+    if (info_array.length == 0 || result.error) {
         return res.status(404).send({
             message: "Not Found"
         });  
@@ -260,13 +262,16 @@ app.get('/api/courses', (req, res) => {
     }
   } 
 
-  else if ((subject_name == "All_Subjects" && number != "" && component == "all_components")) { // If course code area is filled out
+  else if ((subject_name == "All_Subjects" && num != "" && component == "all_components")) { // If only course code area is filled out
+
+    const result = validateCourseCode(num);
+
     for (i = 0; i < data.length; i++) {
-        if (number == data[i].catalog_nbr) {
+        if (num == data[i].catalog_nbr) {
             info_array.push(data[i]);            
         }
     } 
-    if (info_array.length == 0) {
+    if (info_array.length == 0 || result.error) {
         return res.status(404).send({
             message: "Not Found"
         });  
