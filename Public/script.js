@@ -59,6 +59,16 @@ async function listCourses() {
         button.value = "Click here to search again";
         document.getElementById("submitbutton").setAttribute('onclick','goHome()');
     }
+
+    else if (data.message == "Course Not Found") {
+        var h = document.createElement("H2");
+        var text = document.createTextNode("Course Does Not Exist");
+        h.appendChild(text);
+        box.appendChild(h);
+        var button = document.getElementById("submitbutton");   
+        button.value = "Click here to search again";
+        document.getElementById("submitbutton").setAttribute('onclick','goHome()');
+    }
     
     else {
         var h = document.createElement("H2");

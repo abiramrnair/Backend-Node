@@ -11,13 +11,12 @@ const { number } = require('joi');
 app.use(express.static('Public'));
 
 // Database defaults
-db.defaults({schedules: []})
-.write()
+db.defaults({schedules: []}).write()
 
 // JOI function for validating inputs for reuse in API
 function validateSchedule(schedule) {
     const schema = Joi.object({
-        name: Joi.string().min(1).required() // Shedule name cannot be blank space or have any URL confusing characters
+        name: Joi.string().min(1).required() // Schedule name cannot be blank space or have any URL confusing characters
     });
     return schema.validate({ name: schedule});
 }
@@ -39,15 +38,13 @@ app.put('/api/schedules/createschedule', (req, res) => {
         });
     }
 
-    if (db.get('schedules').find({schedule_id: curr_data.name}).value()) {
+    if (db.get('schedules').find({schedule_id: curr_data.name}).value()) { // If schedule name already exists
         return res.status(400).send({
             message: "Status 400, Something Went Wrong"
         });
     } else {
 
-    db.get('schedules')
-    .push({ schedule_id: curr_data.name, schedule_information: []})
-    .write()
+    db.get('schedules').push({ schedule_id: curr_data.name, schedule_information: []}).write()
 
     return res.status(200).send({
         message: "Status 200 OK, schedule added"
@@ -218,7 +215,7 @@ app.get('/api/courses', (req, res) => {
 
     if (info_array.length == 0) {
         return res.status(404).send({
-            message: "Not Found"
+            message: "Course Not Found"
         }); 
     } else {
         res.send(info_array);
@@ -255,6 +252,44 @@ app.get('/api/courses', (req, res) => {
     if (info_array.length == 0 || result.error) {
         return res.status(404).send({
             message: "Not Found"
+        });  
+    } else {
+        res.send(info_array);
+        return true;
+    }
+  }
+
+  else if (subject_name == "All_Subjects" && num != "" && component != "all_components") { // If course code, subject name and component are all filled out but incorrect
+
+    const result = validateCourseCode(num);
+
+    for (i = 0; i < data.length; i++) {
+        if (subject_name == data[i].subject && num == data[i].catalog_nbr && component == data[i].course_info[0].ssr_component) {
+            info_array.push(data[i]);            
+        }
+    } 
+    if (info_array.length == 0 || result.error) {
+        return res.status(404).send({
+            message: "Course Not Found"
+        });  
+    } else {
+        res.send(info_array);
+        return true;
+    }
+  }
+
+  else if (subject_name != "All_Subjects" && num != "" && component != "all_components") { // If course code, subject name and component are all filled out but incorrect
+
+    const result = validateCourseCode(num);
+
+    for (i = 0; i < data.length; i++) {
+        if (subject_name == data[i].subject && num == data[i].catalog_nbr && component == data[i].course_info[0].ssr_component) {
+            info_array.push(data[i]);            
+        }
+    } 
+    if (info_array.length == 0 || result.error) {
+        return res.status(404).send({
+            message: "Course Not Found"
         });  
     } else {
         res.send(info_array);
