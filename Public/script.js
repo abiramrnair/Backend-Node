@@ -2,7 +2,7 @@ var box = document.getElementById("searchbox");
 box.style.opacity = "0";
 
 async function getDropDown() {
-    const response = await fetch("http://localhost:3000/api/dropdown");   
+    const response = await fetch("/api/dropdown");   
     const data = await response.json();
     createDropDownList(data);
 }
@@ -31,7 +31,7 @@ async function listCourses() {
     var subject = document.getElementById("select_subject").value;
     var coursenumber = document.getElementById("course_nbr").value;
     var component = document.getElementById("components").value;
-    var link = "http://localhost:3000/api/courses?" + "subject=" + subject + "&course_number=" + coursenumber + "&course_cmpnt=" + component;
+    var link = "/api/courses?" + "subject=" + subject + "&course_number=" + coursenumber + "&course_cmpnt=" + component;
     
     document.getElementById("select_subject").disabled = true;
     document.getElementById("course_nbr").disabled = true;

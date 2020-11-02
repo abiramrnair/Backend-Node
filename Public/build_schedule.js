@@ -2,7 +2,7 @@ var box = document.getElementById("searchbox");
 box.style.opacity = "0";
 
 async function getDropDown() {
-    const response = await fetch("http://localhost:3000/api/schedules/dropdown");   
+    const response = await fetch("/api/schedules/dropdown");   
     const data = await response.json();
     createDropDownList(data);
 }
@@ -25,7 +25,7 @@ function goHome() {
 }
 
 async function getSubjectDropDown() {
-    const response = await fetch("http://localhost:3000/api/dropdown");   
+    const response = await fetch("/api/dropdown");   
     const data = await response.json();
     createSubjectDropDownList(data);
 }
@@ -52,7 +52,7 @@ async function listCourses() {
     var component = document.getElementById("components").value;
     var schd = document.getElementById("all_schedules").value;
 
-    var link = "http://localhost:3000/api/courses?" + "subject=" + subject + "&course_number=" + coursenumber + "&course_cmpnt=" + component;
+    var link = "/api/courses?" + "subject=" + subject + "&course_number=" + coursenumber + "&course_cmpnt=" + component;
     console.log(link);
     document.getElementById("select_subject").disabled = true;
     document.getElementById("course_nbr").disabled = true;
@@ -225,7 +225,7 @@ async function listCourses() {
 async function doesCourseExist(coursenbr) { // This helps determine whether a button should be created or not to add
     var schedule_name = document.getElementById("all_schedules").value;
     
-    let link = "http://localhost:3000/api/schedules/check?" + "schedule=" + schedule_name + "&course_code=" + coursenbr;
+    let link = "/api/schedules/check?" + "schedule=" + schedule_name + "&course_code=" + coursenbr;
 
     const response = await fetch(link);
     const data = await response.json();       
@@ -240,7 +240,7 @@ async function doesCourseExist(coursenbr) { // This helps determine whether a bu
 async function createScheduleEntry(coursename, subjectcode, coursecode) { // clicking the button does this function to add entry to chosen schedule
     var schedule_name = document.getElementById("all_schedules").value;
 
-    let link = "http://localhost:3000/api/schedules/addcourse?" + "schedule=" + schedule_name + "&course_name=" + coursename.replace(/[&#,+()$~%.'":*?<>{}]/g, "AND") + "&subject_code=" + subjectcode + "&course_code=" + coursecode;
+    let link = "/api/schedules/addcourse?" + "schedule=" + schedule_name + "&course_name=" + coursename.replace(/[&#,+()$~%.'":*?<>{}]/g, "AND") + "&subject_code=" + subjectcode + "&course_code=" + coursecode;
 
     // There was a problem where course names with special characters were confusing the URL, so I used a filter function to replace & but not / with "AND" ^^
     const response = await fetch(link, {method: 'put'});

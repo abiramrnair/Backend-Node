@@ -2,7 +2,7 @@ var box = document.getElementById("searchbox");
 box.style.opacity = "0";
 
 async function getDropDown() {
-    const response = await fetch("http://localhost:3000/api/schedules/dropdown");   
+    const response = await fetch("/api/schedules/dropdown");   
     const data = await response.json();
     createDropDownList(data);
 }
@@ -25,7 +25,7 @@ async function displayScheduleItems() {
     box.style.opacity = "1";
     box.style.backgroundColor = "white";
     var schedule = document.getElementById("all_schedules").value;
-    var link = "http://localhost:3000/api/schedules/load/" + schedule;
+    var link = "/api/schedules/load/" + schedule;
 
     document.getElementById("delete_schedule_button").disabled = true;
     document.getElementById("delete_all_schedule_button").disabled = true;
@@ -73,7 +73,7 @@ async function deleteSingleSchedule() {
     box.style.opacity = "1";
     box.style.backgroundColor = "white";
     var item = document.getElementById("all_schedules").value;
-    var link = "http://localhost:3000/api/schedules/delete?" + "schedule=" + item;
+    var link = "/api/schedules/delete?" + "schedule=" + item;
     const response = await fetch(link, {method: 'delete'});   
     const data = await response.json();
 
@@ -103,7 +103,7 @@ async function deleteAllSchedules() {
     var box = document.getElementById("searchbox");
     box.style.opacity = "1";
     box.style.backgroundColor = "white";
-    const response = await fetch("http://localhost:3000/api/schedules/delete_all", {method: 'delete'});   
+    const response = await fetch("/api/schedules/delete_all", {method: 'delete'});   
     const data = await response.json();
 
     if (data.message == "Status 200 Request Succeeded, All Schedules Deleted") {
@@ -133,7 +133,7 @@ async function createSchedule() {
     box.style.opacity = "1";
     box.style.backgroundColor = "white";
     var name = document.getElementById("schedule_name").value;
-    var link = "http://localhost:3000/api/schedules/createschedule?" + "name=" + name;
+    var link = "/api/schedules/createschedule?" + "name=" + name;
 
     const response = await fetch(link, {method: 'put'}); // Specify that this is a POST request (default is GET)
     const data = await response.json();
