@@ -2,8 +2,8 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
-<html>
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -25,22 +25,22 @@
 
         <div id = "build_schedule_div">
             <form>
-            <label for="subject" id = "subject">Search by Subject:</label>
+            <label id = "subject">Search by Subject:</label>
               <select id="select_subject" name="subject">
                 <option value="All_Subjects" hidden>All Subjects</option>                
             </select><br>   
                      
-            <label for="course_number">Search by Course Code:</label>
+            <label>Search by Course Code:</label>
             <input type="text" maxlength="5" id="course_nbr" name="course_number" placeholder="eg. 1927A"><br>
           
-            <label for="course_component" id="course_component">Component:</label>
+            <label id="course_component">Component:</label>
             <select id="components" name="course_cmpnt">
                 <option value="all_components">All</option>
                 <option value="LEC">Lecture</option>
                 <option value="TUT">Tutorial</option>
                 <option value="LAB">Laboratory</option>
             </select><br>
-            <label for="schedule_component" id="schedules_2">Schedule:</label>
+            <label id="schedules_2">Schedule:</label>
             <select name="schedules" id="all_schedules">
                 <option value="all_schedules" hidden>View Available Schedules</option>
             </select><br>

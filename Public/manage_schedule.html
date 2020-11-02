@@ -2,12 +2,12 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
-<html>
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>Lab 3</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="style.css">
@@ -28,11 +28,10 @@
                                 
             <label for="schedule_name">Enter Desired Schedule Name:</label>
             <input minlength="1" type="text" id="schedule_name" name="schedule_name" placeholder="eg. Winter 1999">
-            <form action="" method="post">
-            <input id = "schedule_button" type="button" value="Create Schedule" onclick="createSchedule()"><br>
-            </form>
+            
+            <input id = "schedule_button" type="button" value="Create Schedule" onclick="createSchedule()"><br>            
 
-            <label for="schedule_component" id="schedules">Schedule:</label>
+            <label id="schedules">Schedule:</label>
             <select name="schedules" id="all_schedules">
                 <option value="all_schedules" hidden>View Available Schedules</option>
             </select>
