@@ -10,20 +10,37 @@ const { number } = require('joi');
 
 app.use(express.static('Public'));
 
+// Enable CORS
+
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-access-token, x-refresh-token, _id");
+
+    res.header(
+        'Access-Control-Expose-Headers',
+        'x-access-token, x-refresh-token'
+    );
+
+    next();
+});
+
+  
 // Database defaults
 db.defaults({schedules: []}).write()
 
 // JOI function for validating inputs for reuse in API
 function validateSchedule(schedule) {
+    const specialChar = /^[^<>:/?#@!$&'()*+,;=]*$/;
     const schema = Joi.object({
-        name: Joi.string().min(1).required() // Schedule name cannot be blank space or have any URL confusing characters
+        name: Joi.string().min(1).regex(specialChar).required() // Schedule name cannot be blank space or have any URL confusing characters
     });
     return schema.validate({ name: schedule});
 }
 
 function validateCourseCode(coursecode) {
     const schema = Joi.object({
-        number: Joi.string().max(5).uppercase().required() // Can either be a four digit number 1234 or a five character string 1234A
+        number: Joi.string().max(5).uppercase().regex(specialChar).required() // Can either be a four digit number 1234 or a five character string 1234A
     });
     return schema.validate({ number: coursecode});
 }
@@ -47,7 +64,8 @@ app.put('/api/schedules/createschedule', (req, res) => {
     db.get('schedules').push({ schedule_id: curr_data.name, schedule_information: []}).write()
 
     return res.status(200).send({
-        message: "Status 200 OK, schedule added"
+        message: "Status 200 OK, schedule added",
+        name: curr_data.name
     });
 }
 });
@@ -80,6 +98,7 @@ app.get('/api/schedules/check', (req, res) => {
     const curr_data = req.query;
     const sched_name = curr_data.schedule;
     const crs_code = curr_data.course_code;
+    const crs_name = curr_data.course_name;
     sched_array = db.get('schedules').map('schedule_id').value();
     
     for (i = 0; i < sched_array.length; i++) {
@@ -91,7 +110,7 @@ app.get('/api/schedules/check', (req, res) => {
    course_array = db.get('schedules[' + ref_num + '].schedule_information').map().value();   
    
    for (i = 0; i < course_array.length; i++) {
-       if (course_array[i].course_code == crs_code) {
+       if (course_array[i].course_code == crs_code && course_array[i].course_name == crs_name) {
         return res.status(200).send({
             message: "Exists"
         });        
