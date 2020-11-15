@@ -39,6 +39,7 @@ function validateSchedule(schedule) {
 }
 
 function validateCourseCode(coursecode) {
+    const specialChar = /^[^<>:/?#@!$&'()*+,;=]*$/;
     const schema = Joi.object({
         number: Joi.string().max(5).uppercase().regex(specialChar).required() // Can either be a four digit number 1234 or a five character string 1234A
     });
