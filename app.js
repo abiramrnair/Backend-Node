@@ -7,10 +7,12 @@ const adapter = new FileSync('schedule_database.json');
 const db = low(adapter);
 const Joi = require('joi');
 const { number } = require('joi');
+const cors = require('cors');
 
 app.use(express.static('Public'));
 
 // Enable CORS
+app.use(cors())
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");

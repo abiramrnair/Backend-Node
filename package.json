@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/gearbaneseries/se3316-anair29-lab3#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "joi": "^17.3.0",
     "lowdb": "^1.0.0",
