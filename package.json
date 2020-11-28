@@ -18,9 +18,13 @@
   },
   "homepage": "https://github.com/gearbaneseries/se3316-anair29-lab3#readme",
   "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "express": "^4.17.1",
     "joi": "^17.3.0",
+    "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
     "node-fetch": "^2.6.1"
   }
