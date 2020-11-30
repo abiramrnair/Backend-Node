@@ -227,7 +227,7 @@ app.post('/api/public/login', async (req, res) => {
     
     if (user == null) {
         return res.send({
-            message: "Email not found"
+            message: "Email Not Found"
         })
     }
 
