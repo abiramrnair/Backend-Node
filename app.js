@@ -3,8 +3,9 @@ const app = express();
 const data = require("./Lab3-timetable-data.json");
 const bcrypt = require('bcrypt'); // Password hashing
 const crypto = require('crypto'); // Random review ID
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken'); // JSON Web Token
+const bodyParser = require('body-parser'); // Self explanatory
+const stringSimilarity = require('string-similarity'); // String similarity library
 
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
@@ -238,8 +239,8 @@ app.post('/api/public/login', async (req, res) => {
         if (await bcrypt.compare(password, user.password)) {            
             const accessToken = generateAccessToken(user); // Login successful, so make access token
             const refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET); // Refresh token to make new access tokens     
-            token_db.get('tokens').push({ refreshToken: refreshToken}).write(); // Insert refresh token into persistent database     
-            res.send( {
+            token_db.get('tokens').push({ refreshToken: refreshToken }).write(); // Insert refresh token into persistent database     
+            res.send({
                 accessToken: accessToken,
                 refreshToken: refreshToken,
                 username: user.username
@@ -823,6 +824,34 @@ app.get('/api/public/schedulecheck/:schedule_name', (req, res) => { // Check if 
 });
 
 // Main page form submit to search for courses
+
+// Soft match string search method
+var data_array = [];
+
+for (i = 0; i < data.length; i++) {
+    data_array.push(data[i].className);
+    data_array.push(String(data[i].catalog_nbr));
+}
+
+app.get('/api/courses/softmatch/:user_string', (req, res) => {
+    const user_string = req.params.user_string.toUpperCase();
+    const test_array = removeDuplicates(data_array);
+    const results = stringSimilarity.findBestMatch(user_string, test_array);    
+    let refined_results = results.ratings.filter(result => result.rating > 0.4); // If rating is 0.3 then results go through   
+    let final_array = [];
+
+    for (i = 0; i < refined_results.length; i++) {
+        for (j = 0; j < data.length; j++) {
+            if (refined_results[i].target == data[j].className || refined_results[i].target == String(data[j].catalog_nbr)) {
+                final_array.push(data[j]);
+            }
+        }
+    }
+
+    return res.send(final_array);
+})
+
+// Three parameter search method
 app.get('/api/courses', (req, res) => {
   curr_data = req.query;
   info_array = [];  

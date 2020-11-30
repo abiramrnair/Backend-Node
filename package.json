@@ -26,6 +26,7 @@
     "joi": "^17.3.0",
     "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "string-similarity": "^4.0.3"
   }
 }
