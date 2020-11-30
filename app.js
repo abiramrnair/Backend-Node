@@ -45,6 +45,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-access-token, x-refresh-token, _id");
     res.header('Access-Control-Expose-Headers','x-access-token, x-refresh-token');
+    res.header("Content-Type", "application/json");
     next();
 });
 
@@ -71,6 +72,22 @@ function validateEmail(email) {
     return schema.validate(email);
 }
 
+function validateUsername(username) {
+    const specialChar = /^[^<>:/?#@!$&'()*+,;=]*$/;
+    const schema = Joi.object({
+        name: Joi.string().min(3).regex(specialChar).required() // Username cannot be blank space or have any URL confusing characters
+    });
+    return schema.validate({ name: username});
+}
+
+function validatePassword(password) {
+    //const specialChar = /^[^<>:/?!$&'()*+,;=]*$/;
+    const schema = Joi.object({
+        name: Joi.string().min(6).required() // Username cannot be blank space or have any URL confusing characters
+    });
+    return schema.validate({ name: password});
+}
+
 // Login methods
 
 // Register Method
@@ -84,9 +101,19 @@ app.post('/api/public/register', async (req, res) => { // generates a user link 
     }
 
     const result = validateEmail(email);
+    const user_result = validateUsername(username);
+    const pass_result = validatePassword(password);
 
     if (result.error) {
         return res.send({ message: "Invalid Email" });
+    }
+
+    else if (user_result.error) {
+        return res.send({ message: "Invalid Username" });
+    }
+
+    else if (pass_result.error) {
+        return res.send({ message: "Invalid Password" });
     }
 
     let doesExist = user_db.get('users').map({ email: email }).value();
@@ -185,10 +212,11 @@ app.post('/api/public/login', async (req, res) => {
             return res.send({
                 accessToken: adminAccessToken,
                 refreshToken: adminRefreshToken,
-                username: user.username
+                username: user.username,
+                message: "Administrator"
             })
         }   catch {
-                return res.status(500).send({
+                return res.send({
                 message: "Unable to login"
             })
         }       
@@ -197,7 +225,7 @@ app.post('/api/public/login', async (req, res) => {
     const user = user_db.get('users').find({ email: email }).value();
     
     if (user == null) {
-        return res.status(400).send({
+        return res.send({
             message: "Email not found"
         })
     }
@@ -217,12 +245,12 @@ app.post('/api/public/login', async (req, res) => {
                 username: user.username
             })
         } else {
-            return res.status(400).send({
+            return res.send({
                 message: "Wrong Password"
             })
         }
     } catch {
-        return res.status(500).send({
+        return res.send({
             message: "Unable to login"
         })
     }
@@ -268,8 +296,72 @@ let authenticateAdminToken = (req, res, next) => {
     })
 }
 
-// ADMIN Routes
+app.get('/api/private/userinfo', authenticateToken, (req, res) => { // Returns user info
+    let token = req.header('x-access-token')
+    
+    jwt.verify(token, ACCESS_TOKEN_SECRET, (error, user) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
 
+        return res.send({ 
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+            }
+        );
+    })    
+})
+
+app.put('/api/private/updatepassword', authenticateToken, async (req, res) => { // Update user password
+    let old_pass = req.body.old_password;
+    let new_pass = req.body.new_password;
+    let email = req.body.email;    
+
+    let user_array = user_db.get('users').value();
+    let ref;
+
+    for (i = 0; i < user_array.length; i++) {
+        if (user_array[i].email == email) {
+            ref = i;
+        }
+    }  
+    
+    if (ref == null) {
+        return res.status(400).send({
+            message: "Email not found"
+        })
+    }      
+
+    const current_password = user_db.get('users[' + ref + '].password').value();   
+
+    try {        
+        if (await bcrypt.compare(old_pass, current_password)) {
+            const hashedPassword = await bcrypt.hash(new_pass, 10); // 10 is a good amount of rounds 
+            user_db.get('users[' + ref + ']').set('password', hashedPassword).write();
+            return res.send({ message: "Password Successfully Changed" });
+        }
+
+    } catch {
+        return res.status(500).send({
+            message: "Unable To Change Password"
+        })
+    } 
+
+    return res.send({ message: "Unable To Change Password" });
+})
+
+// Secure path checking for common user
+app.get('/api/secure/userpath', authenticateToken, (req, res) => { // Run this on init every time a secure path is accessed so redirect can happen
+    return res.sendStatus(200);
+})
+
+app.get('/api/secure/adminpath', authenticateAdminToken, (req, res) => { // Run this on init every time a secure path is accessed so redirect can happen
+    return res.sendStatus(200);
+})
+
+// ADMIN Routes
 app.get('/api/admin/getusers', authenticateAdminToken, (req, res) => { // Get a list of all users on the website
     const admin = req.username;
 
@@ -288,12 +380,13 @@ app.put('/api/admin/users/switchadmin', authenticateAdminToken, (req, res) => { 
         return res.sendStatus(403);
     }
 
-    const email = req.body.email;
+    const user_email = req.body.email;
+    
     let user_array = user_db.get('users').value();
     let ref;
 
     for (i = 0; i < user_array.length; i++) {
-        if (user_array[i].email == email) {
+        if (user_array[i].email == user_email) {
             ref = i;
         }
     }
@@ -303,12 +396,12 @@ app.put('/api/admin/users/switchadmin', authenticateAdminToken, (req, res) => { 
     if (role == "User") {
         user_db.get('users[' + ref + ']').set('role', 'Admin').write();
         user_db.get('users[' + ref + ']').set('status', 'Active').write();
-        return res.sendStatus(200);
+        return res.send({ message: "Role is Now Admin" });
     }
 
     else if (role == "Admin") {
         user_db.get('users[' + ref + ']').set('role', 'User').write();
-        return res.sendStatus(200);
+        return res.send({ message: "Role Is Now User" });
     }
 })
 
@@ -333,13 +426,24 @@ app.put('/api/admin/reviews/switchflag', authenticateAdminToken, (req, res) => {
 
     if (visibility == "Public") {
         review_db.get('reviews[' + ref + ']').set('visibility', 'Hidden').write();        
-        return res.sendStatus(200);
+        return res.send({ message: "Review is Now Hidden" });
     }
 
     else if (visibility == "Hidden") {
         review_db.get('reviews[' + ref + ']').set('visibility', 'Public').write(); 
-        return res.sendStatus(200);
+        return res.send({ message: "Review is Now Public" });
     }
+})
+
+app.get('/api/admin/reviews/displayall', authenticateAdminToken, (req, res) => {
+    const admin = req.username;
+
+    if (!admin) {
+        return res.sendStatus(403);
+    }
+
+    let review_array = review_db.get('reviews').value();
+    return res.send(review_array);
 })
 
 app.put('/api/admin/users/switchflag', authenticateAdminToken, (req, res) => { // Make a user inactive or active
@@ -363,12 +467,12 @@ app.put('/api/admin/users/switchflag', authenticateAdminToken, (req, res) => { /
 
     if (status == "Inactive") {
         user_db.get('users[' + ref + ']').set('status', 'Active').write();        
-        return res.sendStatus(200);
+        return res.send({ message: "Status Is Now Active" });
     }
 
     else if (status == "Active") {
         user_db.get('users[' + ref + ']').set('status', 'Inactive').write();   
-        return res.sendStatus(200);
+        return res.send({ message: "Status Is Now Inactive" });
     }
 })
 
@@ -404,6 +508,8 @@ app.delete('/api/public/logout', (req, res) => {
     }
 
     token_db.get('tokens').remove({ refreshToken: refreshToken }).write();
+    token_db.get('tokens').remove({ adminRefreshToken: refreshToken }).write();
+
     return res.status(204).send({
         message: "Refresh Token Deleted and Session Ended"
     })
