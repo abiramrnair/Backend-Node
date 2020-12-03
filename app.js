@@ -32,6 +32,8 @@ const ADMIN_TOKEN_SECRET = 'drsuwQhU3nwozzfFswLKp416hZmvhGE2XX4SmyK3YqjAIsmiL67P
 const Joi = require('joi');
 const { number } = require('joi');
 const cors = require('cors');
+const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
+const { response } = require('express');
 
 app.use(express.static('Public'));
 app.use(express.json()); 
@@ -78,7 +80,7 @@ function validateUsername(username) {
     const schema = Joi.object({
         name: Joi.string().min(3).regex(specialChar).required() // Username cannot be blank space or have any URL confusing characters
     });
-    return schema.validate({ name: username});
+    return schema.validate({ name: username });
 }
 
 function validatePassword(password) {
@@ -87,6 +89,36 @@ function validatePassword(password) {
         name: Joi.string().min(6).required() // Username cannot be blank space or have any URL confusing characters
     });
     return schema.validate({ name: password});
+}
+
+function validateString(textline) {
+    const specialChar = /^[^<>:/?#@!$&'()*+,;=]*$/;
+    const schema = Joi.object({
+        name: Joi.string().min(4).regex(specialChar).required() // Username cannot be blank space or have any URL confusing characters
+    });
+    return schema.validate({ name: textline });
+}
+
+function getCurrentTime() { // Time function for logging whenever review is made or user modifies schedule
+    const date = new Date();
+    let hh = date.getHours();
+    let mm = date.getMinutes();
+    let ss = date.getSeconds();
+    let mo = date.getMonth();
+    let yr = date.getFullYear();
+    let dy = date.getDate();
+
+    hh = hh < 10 ? '0'+hh : hh; 
+    mm = mm < 10 ? '0'+mm : mm;
+    mo = mo + 1;
+
+    curr_time = yr + '/'+ mo + '/' + dy + ' ' + hh+':'+mm+':'+ss;
+    return String(curr_time);
+}
+
+function getRawTime() {
+    const time = new Date();
+    return time.getTime();
 }
 
 // Login methods
@@ -126,8 +158,8 @@ app.post('/api/public/register', async (req, res) => { // generates a user link 
     try {
         const hashedPassword = await bcrypt.hash(password, 10) // 10 is a good amount of rounds   
         const hashedEmail = await bcrypt.hash(email, 10) // once again 10     
-        user_db.get('users').push({ username: username, email: email, password: hashedPassword, role: 'User', status: 'Inactive' }).write(); // All users are inactive by default unless click on verification or admin changes
-        user_db.get('links').push({ link: hashedEmail }).write();
+        user_db.get('users').push({ username: username, email: email, password: hashedPassword, role: 'User', status: 'Unverified' }).write(); // All users are inactive by default unless click on verification or admin changes
+        user_db.get('links').push({ email: email, link: hashedEmail }).write();
         return res.status(201).send({
             message: "Account Created",
             link: hashedEmail
@@ -183,11 +215,19 @@ app.post('/api/user/verify', async (req, res) => { // used to verify the link th
 // Login Method
 app.post('/api/public/login', async (req, res) => {
     const email = req.body.email;
-    const password = req.body.password;   
-
-    if (!email || !password) {
-        return res.send({ message: "Fill Out All Input Fields" });        
+    const password = req.body.password;
+    
+    if (!email && !password) {
+        return res.send({ message: "Fill Out All Input Fields" });  
     }
+
+    if (!email) {
+        return res.send({ message: "Fill Out Email Field" });        
+    }
+
+    if (!password) {
+        return res.send({ message: "Fill Out Password Field" });
+    }  
 
     const result = validateEmail(email);
 
@@ -233,10 +273,16 @@ app.post('/api/public/login', async (req, res) => {
 
     else if (user.status == "Inactive") {
         return res.send({ message: "Account Inactive, Contact Administrator" });
-    } 
-
+    }
+    
     try {        
-        if (await bcrypt.compare(password, user.password)) {            
+        if (await bcrypt.compare(password, user.password)) { 
+            
+            if (user.status == "Unverified") {
+                const tokendata = user_db.get('links').find({ email: email }).value()
+                return res.send({ message: "Account Is Not Verified", tokendata });
+            }
+
             const accessToken = generateAccessToken(user); // Login successful, so make access token
             const refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET); // Refresh token to make new access tokens     
             token_db.get('tokens').push({ refreshToken: refreshToken }).write(); // Insert refresh token into persistent database     
@@ -531,26 +577,7 @@ app.put('/api/private/schedules/createschedule', authenticateToken, (req, res) =
         });
     }
 
-    db.get('schedules').push({ schedule_creator: username, schedule_flag: 'Private', schedule_id: schedule_name, schedule_description: schedule_description, schedule_information: []}).write()
-
-    return res.status(200).send({
-        message: "Status 200 OK, schedule added",
-        name: schedule_name
-    });
-});
-
-app.put('/api/public/schedules/createschedule/:schedule_name', (req, res) => { // Publicly created schedule
-    const schedule_name = req.params.schedule_name;    
-
-    const result = validateSchedule(schedule_name);   
-    
-    if (result.error) {
-        return res.status(400).send({
-            message: "Schedule Name Is Invalid"
-        });
-    }
-
-    db.get('schedules').push({ schedule_creator: "Unverified User", schedule_flag: 'Public', schedule_id: schedule_name, schedule_description: "None", schedule_information: []}).write()
+    db.get('schedules').push({ schedule_creator: username, schedule_flag: 'Private', schedule_id: schedule_name, schedule_description: schedule_description, last_modified: getCurrentTime(), raw_time: getRawTime(), schedule_information: []}).write()
 
     return res.status(200).send({
         message: "Status 200 OK, schedule added",
@@ -601,7 +628,8 @@ app.get('/api/private/schedules/load/:schedule_name', authenticateToken, (req, r
 
     const array_list = db.get('schedules[' + ref + '].schedule_information').write();
     const flag = db.get('schedules[' + ref + '].schedule_flag').value();
-    return res.json({ array_list, flag });    
+    const time = db.get('schedules[' + ref + '].last_modified').value();
+    return res.json({ array_list, flag, time });    
 });
 
 app.get('/api/public/schedules/load/:owner/:schedule_name', (req, res) => { // Show courses inside public schedule
@@ -619,12 +647,13 @@ app.get('/api/public/schedules/load/:owner/:schedule_name', (req, res) => { // S
     }    
 
     let flag = db.get('schedules[' + ref + '].schedule_flag').value();
+    let time = db.get('schedules[' + ref + '].last_modified').value();
     let owner = db.get('schedules[' + ref + '].schedule_creator').value();
     let description = db.get('schedules[' + ref + '].schedule_description').value();
 
     if (flag != "Private") {
         const array_list = db.get('schedules[' + ref + '].schedule_information').write();
-        res.json({ array_list, owner, description });
+        res.json({ array_list, owner, description, time });
     }
 
     else {
@@ -662,12 +691,12 @@ app.get('/api/schedules/check', (req, res) => { // Check before a course already
     });   
 });
 
-app.put('/api/private/schedules/addcourse/:schedule_name', authenticateToken, (req, res) => { // Put a course inside a schedule
+app.put('/api/private/schedules/addcourse/:schedule_name', authenticateToken, (req, res) => { // Put a course inside a user schedule
     
     const sched_name = req.params.schedule_name;
     const course_name = req.body.course_name;
     const sbj_code = req.body.subject_code;    
-    const crs_code = req.body.course_code;
+    const crs_code = String(req.body.course_code);
 
     const sched_array = db.get('schedules').map('schedule_id').value();
     
@@ -680,11 +709,53 @@ app.put('/api/private/schedules/addcourse/:schedule_name', authenticateToken, (r
     }
 
     db.get('schedules[' + ref + '].schedule_information').push({ course_name: course_name, subject_code: sbj_code, course_code: crs_code }).write();
-    
+    db.get('schedules[' + ref + ']').set('last_modified',getCurrentTime()).write();
+    db.get('schedules[' + ref + ']').set('raw_time',getRawTime()).write();
+
     return res.status(200).send({
         message: "Course Added"
     });
 });
+
+app.put('/api/private/schedules/deletecourse/:schedule_name', authenticateToken, (req, res) => { // Delete a course from user schedule
+    const sched_name = req.params.schedule_name;
+    const crs_name = req.body.course_name;
+    const sbj_code = req.body.subject_code;    
+    const crs_code = req.body.course_code;
+
+    const sched_array = db.get('schedules').map('schedule_id').value();
+
+    let ref;
+
+    for (i = 0; i < sched_array.length; i++) {
+        if (sched_array[i] == sched_name) {
+            ref = i;
+        }
+    }
+
+    if (ref == null) {
+        return res.send({ message: "Schedule Not Found" });
+    }
+
+    const course_array = db.get('schedules[' + ref + '].schedule_information').value();
+
+    let counter;
+
+    for (i = 0; i < course_array.length; i++) {
+        if ((course_array[i].course_name == crs_name) && (course_array[i].subject_code == sbj_code) && (course_array[i].course_code == crs_code)) {
+            counter = i;
+        }
+    }    
+
+    if (counter == null) {
+        return res.send({ message: "Course Not Found" });
+    } else {
+        db.get('schedules[' + ref + '].schedule_information').remove({ course_name: crs_name, subject_code: sbj_code, course_code: crs_code }).write();
+        db.get('schedules[' + ref + ']').set('last_modified',getCurrentTime()).write(); 
+        db.get('schedules[' + ref + ']').set('raw_time',getRawTime()).write();       
+        return res.send({ message: "Course Removed" });
+    }
+})
 
 app.put('/api/public/schedules/addcourse/:schedule_name', (req, res) => {
     const sched_name = req.params.schedule_name;
@@ -717,10 +788,27 @@ app.get('/api/schedules/dropdown', authenticateToken, (req, res) => { // Return 
     res.send(name_array);
 });
 
-app.get('/api/public/schedules/dropdown', (req, res) => { // Return public schedules
+app.get('/api/public/schedules/dropdown', (req, res) => { // Return public schedules in sorted time modified order
     let name_array = [];
+    let unsorted_array = [];
+    let response_array = [];
     name_array = db.get('schedules').filter({ schedule_flag: "Public" }).value();
-    res.send(name_array)
+
+    for (i = 0; i < name_array.length; i++) {
+        unsorted_array.push(name_array[i].raw_time);
+    }
+
+    const sorted_array = unsorted_array.sort(function(a, b){return a - b});
+
+    for (i = 0; i < sorted_array.length; i++) {
+        for (j = 0; j < name_array.length; j++) {
+            if (sorted_array[i] == name_array[j].raw_time) {
+                response_array.push(name_array[j]);
+            }
+        }
+    }
+
+    res.send(response_array);
 });
 
 app.put('/api/private/schedules/courses/add-review', authenticateToken, (req, res) => { // User can write review for specific course
@@ -730,7 +818,7 @@ app.put('/api/private/schedules/courses/add-review', authenticateToken, (req, re
 
     const review_id = crypto.randomBytes(10).toString('hex');
 
-    review_db.get('reviews').push({ username: username, review_id: review_id, course: course, review: review , visibility: "Public" }).write();
+    review_db.get('reviews').push({ username: username, review_id: review_id, course: course, review: review , time_created: getCurrentTime(), visibility: "Public" }).write();
 
     return res.status(200).send({
         message: "Review Added"
@@ -741,6 +829,20 @@ app.get('/api/public/courses/get-review', (req, res) => { // All reviews
    let review_array = review_db.get('reviews').filter({ visibility: "Public" }).value();
    res.send(review_array);
 });
+
+app.get('/api/public/courses/get-course-review/:course_name', (req, res) => { // Get specific review
+    const course_name = req.params.course_name;
+    let review_array = [];
+    let course_review = review_db.get('reviews').value();    
+
+    for (i = 0; i < course_review.length; i++) {
+        if (course_review[i].course == course_name) {
+            review_array.push(course_review[i]);
+        }
+    }
+
+    return res.send(review_array);
+})
 
 app.get('/api/private/schedules/:schedule_name/switchflag', authenticateToken, (req, res) => {
     const username = req.username;
@@ -833,11 +935,19 @@ for (i = 0; i < data.length; i++) {
     data_array.push(String(data[i].catalog_nbr));
 }
 
-app.get('/api/courses/softmatch/:user_string', (req, res) => {
+app.get('/api/courses/softmatch/:user_string', (req, res) => { // Search method
     const user_string = req.params.user_string.toUpperCase();
+    const result = validateString(user_string);
+
+    if (result.error) {
+        return res.send({
+            message: "Invalid String"
+        });
+    }
+
     const test_array = removeDuplicates(data_array);
     const results = stringSimilarity.findBestMatch(user_string, test_array);    
-    let refined_results = results.ratings.filter(result => result.rating > 0.4); // If rating is 0.3 then results go through   
+    let refined_results = results.ratings.filter(result => result.rating > 0.3); // If rating is above 0.2 then results go through   
     let final_array = [];
 
     for (i = 0; i < refined_results.length; i++) {
@@ -849,6 +959,23 @@ app.get('/api/courses/softmatch/:user_string', (req, res) => {
     }
 
     return res.send(final_array);
+})
+
+app.get('/api/courses/info/:className/:subjectcode/:coursecode', (req, res) => { // Show information for an individual course
+    const class_Name = req.params.className;
+    const subject_code = req.params.subjectcode;
+    const course_code = req.params.coursecode;
+
+    let ref;
+
+    for (i = 0; i < data.length; i++) {
+        if (class_Name == data[i].className && subject_code == data[i].subject && course_code == data[i].catalog_nbr) {
+            ref = i;
+        }
+    }
+
+    const course_item = data[ref];
+    return res.send(course_item);
 })
 
 // Three parameter search method
