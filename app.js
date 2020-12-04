@@ -56,7 +56,7 @@ app.use(function (req, res, next) {
 function validateSchedule(schedule) {
     const specialChar = /^[^<>:/?#@!$&'()*+,;=]*$/;
     const schema = Joi.object({
-        name: Joi.string().min(1).regex(specialChar).required() // Schedule name cannot be blank space or have any URL confusing characters
+        name: Joi.string().min(1).max(20).regex(specialChar).required() // Schedule name cannot be blank space or have any URL confusing characters
     });
     return schema.validate({ name: schedule});
 }
@@ -692,7 +692,8 @@ app.get('/api/private/schedules/load/:schedule_name', authenticateToken, (req, r
     const array_list = db.get('schedules[' + ref + '].schedule_information').write();
     const flag = db.get('schedules[' + ref + '].schedule_flag').value();
     const time = db.get('schedules[' + ref + '].last_modified').value();
-    return res.json({ array_list, flag, time });    
+    const description = db.get('schedules[' + ref + '].schedule_description').value();
+    return res.json({ array_list, flag, time, description });    
 });
 
 app.get('/api/public/schedules/load/:owner/:schedule_name', (req, res) => { // Show courses inside public schedule
@@ -905,7 +906,7 @@ app.get('/api/public/courses/get-course-review/:course_name', (req, res) => { //
     let course_review = review_db.get('reviews').value();    
 
     for (i = 0; i < course_review.length; i++) {
-        if (course_review[i].course == course_name) {
+        if (course_review[i].course == course_name && course_review[i].visibility != "Hidden") {
             review_array.push(course_review[i]);
         }
     }
