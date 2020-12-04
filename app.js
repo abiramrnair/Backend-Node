@@ -13,17 +13,20 @@ const adapter = new FileSync('schedule_database.json');
 const user_database = new FileSync('user_database.json');
 const token_database = new FileSync('token_database.json');
 const review_database = new FileSync('review_database.json');
+const policy_database = new FileSync('policies.json');
 
 const db = low(adapter);
 const user_db = low(user_database);
 const token_db = low(token_database);
 const review_db = low(review_database);
+const policy_db = low(policy_database);
 
 // Database defaults
 db.defaults({schedules: []}).write() // schedules
 user_db.defaults({users: [], links: []}).write(); // all users including admin
 token_db.defaults({tokens: []}).write(); // all refresh tokens stored
 review_db.defaults({reviews: []}).write(); // all course reviews are stored
+policy_db.defaults({policies: []}).write(); // policies for website are stored
 
 const ACCESS_TOKEN_SECRET = '9b653f80ba4d1ed94c1e3d4ea701e2da627e72c551bd91586f203ac1b18638402926418d2b4610cd93494fa4348d04692cc0bccb0ce5d1f47367f220c8369721';
 const REFRESH_TOKEN_SECRET = 'e34369e97dc3a873e73078fc788da4bdf0b725713911721ba9415f44997a67016ac550e0fc7c4bc6215028f7e6425ec3b8ea30fc66c4abb0447d98b836b8edae';
@@ -388,6 +391,12 @@ app.get('/api/private/userinfo', authenticateToken, (req, res) => { // Returns u
     })    
 })
 
+app.get('/api/letmein', authenticateToken, (req, res) => { // redirects for restricted users
+})
+
+app.get('/api/admin/letmein', authenticateAdminToken, (req, res) => { // redirects for restricted users
+})
+
 app.put('/api/private/updatepassword', authenticateToken, async (req, res) => { // Update user password
     let old_pass = req.body.old_password;
     let new_pass = req.body.new_password;
@@ -554,6 +563,51 @@ app.put('/api/admin/users/switchflag', authenticateAdminToken, (req, res) => { /
         user_db.get('users[' + ref + ']').set('status', 'Inactive').write();   
         return res.send({ message: "Status Is Now Inactive" });
     }
+})
+
+app.put('/api/admin/site/updatepolicy', authenticateAdminToken, (req, res) => { // Not malicious user so doesn't need input sanitization (updating policy)
+    dmca_policy = req.body.dmca_policy;
+    aup_policy = req.body.aup_policy;
+    security_policy = req.body.security_policy;
+
+    policy_size = policy_db.get('policies').size().value();
+
+    if (policy_size == 0) {
+        policy_db.get('policies').push({ dmca_policy: "This is the DMCA Policy" }, { aup_policy: "This is the AUP Policy" }, { security_policy: "This is the security policy" }).write();
+    } 
+
+    if (!dmca_policy && !aup_policy && !security_policy) {
+        policy_db.get('policies[0]').set('dmca_policy', 'This is the DMCA Policy').write();
+        policy_db.get('policies[1]').set('aup_policy', 'This is the AUP Policy').write();
+        policy_db.get('policies[2]').set('security_policy', 'This is the security policy').write();
+        return res.send({ message: "Default policy" });
+    }
+
+    if (!dmca_policy) {
+        policy_db.get('policies[0]').set('dmca_policy', 'This is the DMCA Policy').write();
+        return res.send({ message: "Default policy" });
+    }
+
+    if (!aup_policy) {
+        policy_db.get('policies[1]').set('aup_policy', 'This is the AUP Policy').write();
+        return res.send({ message: "Default policy" });
+    }
+
+    if (!security_policy) {
+        policy_db.get('policies[2]').set('security_policy', 'This is the security policy').write();
+        return res.send({ message: "Default policy" });
+    }
+
+    policy_db.get('policies[0]').set('dmca_policy', dmca_policy).write();
+    policy_db.get('policies[1]').set('aup_policy', aup_policy).write();
+    policy_db.get('policies[2]').set('security_policy', security_policy).write();
+
+    return res.send({ message: "Policies Updated" });
+})
+
+app.get('/api/public/policies', (req, res) => { // Get publicly accessible policies
+    const response = policy_db.get('policies').value();    
+    return res.send(response);
 })
 
 // Access token generator with refresh token
