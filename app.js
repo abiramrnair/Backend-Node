@@ -99,6 +99,14 @@ function validateString(textline) {
     return schema.validate({ name: textline });
 }
 
+function validateReview(review_text) {
+    const specialChar = /^[^<>:/#@$&'()*+,;=]*$/;
+    const schema = Joi.object({
+        name: Joi.string().min(4).max(250).regex(specialChar).required() // Username cannot be blank space or have any URL confusing characters
+    });
+    return schema.validate({ name: review_text });
+}
+
 function getCurrentTime() { // Time function for logging whenever review is made or user modifies schedule
     const date = new Date();
     let hh = date.getHours();
@@ -273,7 +281,7 @@ app.post('/api/public/login', async (req, res) => {
 
     else if (user.status == "Inactive") {
         return res.send({ message: "Account Inactive, Contact Administrator" });
-    }
+    }   
     
     try {        
         if (await bcrypt.compare(password, user.password)) { 
@@ -281,6 +289,25 @@ app.post('/api/public/login', async (req, res) => {
             if (user.status == "Unverified") {
                 const tokendata = user_db.get('links').find({ email: email }).value()
                 return res.send({ message: "Account Is Not Verified", tokendata });
+            }
+
+            if (user.role == "Admin") {
+
+                let admin_user = {
+                    email,
+                    password,
+                    username: user.username
+                }
+
+                    const adminAccessToken = generateAdminAccessToken(admin_user); // Login successful, so make admin access token
+                    const adminRefreshToken = jwt.sign(admin_user, ADMIN_TOKEN_SECRET); // Refresh token to make new admin tokens
+                    token_db.get('tokens').push( { adminRefreshToken: adminRefreshToken }).write();
+                    return res.send({
+                        accessToken: adminAccessToken,
+                        refreshToken: adminRefreshToken,
+                        username: user.username,
+                        message: "Administrator"
+                    })
             }
 
             const accessToken = generateAccessToken(user); // Login successful, so make access token
@@ -365,6 +392,12 @@ app.put('/api/private/updatepassword', authenticateToken, async (req, res) => { 
     let old_pass = req.body.old_password;
     let new_pass = req.body.new_password;
     let email = req.body.email;    
+    
+    const result = validatePassword(new_pass);
+
+    if (result.error) {
+        return res.send({ message: "Password must be at least 6 characters" });
+    }
 
     let user_array = user_db.get('users').value();
     let ref;
@@ -584,6 +617,36 @@ app.put('/api/private/schedules/createschedule', authenticateToken, (req, res) =
         name: schedule_name
     });
 });
+
+app.post('/api/private/schedules/edit', authenticateToken, (req, res) => {
+    const username = req.username;
+    const old_schedule_name = req.body.old_schedule_name;
+    const new_schedule_name = req.body.new_schedule_name;
+    const new_schedule_description = req.body.new_schedule_description;
+
+    const result = validateSchedule(new_schedule_name);
+
+    if (result.error) {
+        return res.sendStatus(400);
+    }
+
+    let ref;
+
+    let sched_array = db.get('schedules').value();
+
+    for (i = 0; i < sched_array.length; i++) {
+        if (sched_array[i].schedule_id == old_schedule_name && sched_array[i].schedule_creator == username) {
+            ref = i;
+        }
+    }   
+
+    db.get('schedules[' + ref + ']').set('schedule_id', new_schedule_name).write();
+    db.get('schedules[' + ref + ']').set('schedule_description', new_schedule_description).write();
+    db.get('schedules[' + ref + ']').set('last_modified', getCurrentTime()).write();
+    db.get('schedules[' + ref + ']').set('raw_time', getRawTime()).write();
+
+    return res.status(200);
+})
 
 app.get('/api/private/schedules/listmyschedules', authenticateToken, (req, res) => { // Show schedules by user
     const username = req.username;    
@@ -816,6 +879,12 @@ app.put('/api/private/schedules/courses/add-review', authenticateToken, (req, re
     const course = req.body.course;
     const review = req.body.review;
 
+    const result = validateReview(review);
+
+    if (result.error) {
+        return res.send({ message: "Error" });
+    }
+
     const review_id = crypto.randomBytes(10).toString('hex');
 
     review_db.get('reviews').push({ username: username, review_id: review_id, course: course, review: review , time_created: getCurrentTime(), visibility: "Public" }).write();
@@ -980,128 +1049,91 @@ app.get('/api/courses/info/:className/:subjectcode/:coursecode', (req, res) => {
 
 // Three parameter search method
 app.get('/api/courses', (req, res) => {
-  curr_data = req.query;
-  info_array = [];  
-  subject_name = curr_data.subject;
-  num = curr_data.course_number;
-  component = curr_data.course_cmpnt;
-
-  if (subject_name == "All_Subjects" && num == "") { // done
-    return res.status(400).send({
-        message: "Too many results to display. Please narrow search fields."
-    });      
-  }
-
-  else if (subject_name != "All_Subjects" && num == "" && component != "all_components") { // Subject area chosen and specific component chosen
-
-    for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject && component == data[i].course_info[0].ssr_component) {
-            info_array.push(data[i]);            
-        }
-    }
-
-    if (info_array.length == 0) {
-        return res.status(404).send({
-            message: "Course Not Found"
-        }); 
-    } else {
-        res.send(info_array);
-        return true;
-    }    
-  }
-
-  else if (subject_name != "All_Subjects" && num == "" && component == "all_components") { // Subject area chosen and any component chosen
+    let final_array = [];
+    let subject = req.query.subject.toUpperCase();
+    let course_code = req.query.course_number.toUpperCase();
     
-    for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject) {
-            info_array.push(data[i]);            
+    if (!course_code) { // search by subject only
+        
+        if (subject == "ALL SUBJECTS") {
+            for (i = 0; i < data.length; i++) {
+                final_array.push(data[i]);
+            }
+
+            return res.send(final_array);
         }
-    } 
-    if (info_array.length == 0) {
-        return res.status(404).send({
-            message: "Not Found"
-        });  
-    } else {
-        res.send(info_array);
-        return true;
-    }
-  }
-  
-  else if ((subject_name != "All_Subjects" && num != "" && component == "all_components")) { // If course code, subject name and component are all filled out
 
-    const result = validateCourseCode(num);
+        else if (subject != "ALL SUBJECTS") {
+            for (i = 0; i < data.length; i++) {
+                if (subject == data[i].subject) {
+                    final_array.push(data[i]);
+                }
+            }
 
-    for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject && num == data[i].catalog_nbr) {
-            info_array.push(data[i]);            
+            return res.send(final_array);
         }
-    } 
-    if (info_array.length == 0 || result.error) {
-        return res.status(404).send({
-            message: "Not Found"
-        });  
-    } else {
-        res.send(info_array);
-        return true;
     }
-  }
 
-  else if (subject_name == "All_Subjects" && num != "" && component != "all_components") { // If course code, subject name and component are all filled out but incorrect
+    else if (course_code != null && subject == "ALL SUBJECTS") { // search by course_code only IF NOT A NUMBER, THEN TRUE, IF NUMBER THEN FALSE    
+        
+        isANumber = isNaN(course_code);        
 
-    const result = validateCourseCode(num);
+        if (isANumber == false) { // if user enters without letter
 
-    for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject && num == data[i].catalog_nbr && component == data[i].course_info[0].ssr_component) {
-            info_array.push(data[i]);            
+            for (i = 0; i < data.length; i++) {
+                let result = stringSimilarity.compareTwoStrings(course_code, String(data[i].catalog_nbr));
+                    if (result > 0.85) {
+                    final_array.push(data[i]);
+                }
+            }   
+
+            return res.send(final_array);
+        }    
+
+        else if (isANumber == true) { // if user enters with letter
+
+            for (i = 0; i < data.length; i++) {
+                if (course_code == data[i].catalog_nbr) {
+                    final_array.push(data[i]);
+                }
+            }
+
+            return res.send(final_array);
         }
-    } 
-    if (info_array.length == 0 || result.error) {
-        return res.status(404).send({
-            message: "Course Not Found"
-        });  
-    } else {
-        res.send(info_array);
-        return true;
     }
-  }
 
-  else if (subject_name != "All_Subjects" && num != "" && component != "all_components") { // If course code, subject name and component are all filled out but incorrect
+    else if (course_code != null && subject != "ALL SUBJECTS") {
 
-    const result = validateCourseCode(num);
+        isANumber = isNaN(course_code);
+        
 
-    for (i = 0; i < data.length; i++) {
-        if (subject_name == data[i].subject && num == data[i].catalog_nbr && component == data[i].course_info[0].ssr_component) {
-            info_array.push(data[i]);            
+        if (isANumber == false) { // if user enters 4 numbers no letter and a valid subject
+
+            for (i = 0; i < data.length; i++) {
+                if (subject == data[i].subject) {
+                    let result = stringSimilarity.compareTwoStrings(course_code, String(data[i].catalog_nbr));
+                    if (result > 0.85) {
+                        final_array.push(data[i]);
+                    }
+                }
+            }
+
+            return res.send(final_array);
         }
-    } 
-    if (info_array.length == 0 || result.error) {
-        return res.status(404).send({
-            message: "Course Not Found"
-        });  
-    } else {
-        res.send(info_array);
-        return true;
+
+        else if (isANumber == true) {
+            
+            for (i = 0; i < data.length; i++) {
+                if (subject == data[i].subject && course_code == String(data[i].catalog_nbr)) {
+                    final_array.push(data[i]);
+                }
+            }
+
+            return res.send(final_array);
+        }        
     }
-  } 
 
-  else if ((subject_name == "All_Subjects" && num != "" && component == "all_components")) { // If only course code area is filled out
-
-    const result = validateCourseCode(num);
-
-    for (i = 0; i < data.length; i++) {
-        if (num == data[i].catalog_nbr) {
-            info_array.push(data[i]);            
-        }
-    } 
-    if (info_array.length == 0 || result.error) {
-        return res.status(404).send({
-            message: "Not Found"
-        });  
-    } else {
-        res.send(info_array);
-        return true;
-    }
-  }    
+    return res.send({ message: 'Course Not Found' });
 });
 
 // Use port 3000 unless preconfigured port exists
