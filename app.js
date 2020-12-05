@@ -655,7 +655,13 @@ app.put('/api/private/schedules/createschedule', authenticateToken, (req, res) =
     const username = req.username;
     const schedule_name = req.body.schedule_name;
     const schedule_description = req.body.schedule_description;
+
+    const name_array = db.get('schedules').filter({ schedule_creator: username }).value();
     
+    if (name_array.length > 20) {
+        return res.send({ message: "Maximum Schedule Limit Reached" });
+    }
+
     const result = validateSchedule(schedule_name);   
     
     if (result.error) {
@@ -677,6 +683,10 @@ app.post('/api/private/schedules/edit', authenticateToken, (req, res) => {
     const old_schedule_name = req.body.old_schedule_name;
     const new_schedule_name = req.body.new_schedule_name;
     const new_schedule_description = req.body.new_schedule_description;
+
+    if (old_schedule_name == new_schedule_name) {
+        return res.send({ message: "error" });
+    }
 
     const result = validateSchedule(new_schedule_name);
 
@@ -899,10 +909,10 @@ app.put('/api/public/schedules/addcourse/:schedule_name', (req, res) => {
 });
 
 app.get('/api/schedules/dropdown', authenticateToken, (req, res) => { // Return user specific schedules
-    const username = req.username;
-    
+    const username = req.username;    
     let name_array = [];
-    name_array = db.get('schedules').map('schedule_id').value();  
+    name_array = db.get('schedules').map('schedule_id').value();    
+
     res.send(name_array);
 });
 
@@ -926,7 +936,19 @@ app.get('/api/public/schedules/dropdown', (req, res) => { // Return public sched
         }
     }
 
-    res.send(response_array);
+    if (response_array.length > 10) {
+
+    let final_array = [];
+    
+    for (i = 0; i < 10; i++) {
+        final_array.push(response_array[i]);
+    }
+
+        return res.send(final_array);
+    }
+
+    return res.send(response_array);
+    
 });
 
 app.put('/api/private/schedules/courses/add-review', authenticateToken, (req, res) => { // User can write review for specific course
